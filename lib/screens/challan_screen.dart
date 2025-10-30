@@ -179,6 +179,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
         });
   }
 
+  @override
   void dispose() {
     customerNameController.dispose();
     locationController.dispose();

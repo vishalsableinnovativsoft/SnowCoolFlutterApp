@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
           color: const Color.fromRGBO(0, 140, 192, 1),
         ),
         ),
+        scaffoldBackgroundColor: Color.fromRGBO(255, 255, 255, 1),
       ),
       home:
           const LoginScreen(), // Sets LoginScreen as the initial route/home page.

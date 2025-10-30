@@ -99,4 +99,95 @@ class ChallanApi {
       return false;
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchChallanData({
+    String? customerName,
+    String? challanType,
+    String? location,
+    String? transporter,
+    String? vehicleDriverDetails,
+    String? mobileNumber,
+    String? smallRegularQty,
+    String? smallRegularSrNo,
+    String? smallFloronQty,
+    String? smallFloronSrNo,
+    String? bigRegularQty,
+    String? bigRegularSrNo,
+    String? bigFloronQty,
+    String? bigFloronSrNo,
+  }) async {
+    final normalizedBase = baseUrl.endsWith('/')
+        ? baseUrl.substring(0, baseUrl.length - 1)
+        : baseUrl;
+
+    // Build query parameters (only add if not null or empty)
+    final queryParams = {
+      if (customerName != null && customerName.isNotEmpty)
+        'customerName': customerName,
+      if (challanType != null && challanType.isNotEmpty)
+        'challanType': challanType,
+      if (location != null && location.isNotEmpty) 'location': location,
+      if (transporter != null && transporter.isNotEmpty)
+        'transporter': transporter,
+      if (vehicleDriverDetails != null && vehicleDriverDetails.isNotEmpty)
+        'vehicleDriverDetails': vehicleDriverDetails,
+      if (mobileNumber != null && mobileNumber.isNotEmpty)
+        'mobileNumber': mobileNumber,
+      if (smallRegularQty != null && smallRegularQty.isNotEmpty)
+        'smallRegularQty': smallRegularQty,
+      if (smallRegularSrNo != null && smallRegularSrNo.isNotEmpty)
+        'smallRegularSrNo': smallRegularSrNo,
+      if (smallFloronQty != null && smallFloronQty.isNotEmpty)
+        'smallFloronQty': smallFloronQty,
+      if (smallFloronSrNo != null && smallFloronSrNo.isNotEmpty)
+        'smallFloronSrNo': smallFloronSrNo,
+      if (bigRegularQty != null && bigRegularQty.isNotEmpty)
+        'bigRegularQty': bigRegularQty,
+      if (bigRegularSrNo != null && bigRegularSrNo.isNotEmpty)
+        'bigRegularSrNo': bigRegularSrNo,
+      if (bigFloronQty != null && bigFloronQty.isNotEmpty)
+        'bigFloronQty': bigFloronQty,
+      if (bigFloronSrNo != null && bigFloronSrNo.isNotEmpty)
+        'bigFloronSrNo': bigFloronSrNo,
+    };
+
+    final uri = Uri.parse(
+      '$normalizedBase/getChallanData',
+    ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
+    log('fetchChallanData (GET): URL=$uri');
+
+    final headers = ApiUtils.getAuthenticatedHeaders();
+    log('fetchChallanData: headers=$headers');
+
+    try {
+      final resp = await http.get(uri, headers: headers);
+      // .timeout(const Duration(seconds: 10));
+
+      log('fetchChallanData: status=${resp.statusCode}');
+      log('fetchChallanData: response=${resp.body}');
+
+      if (resp.statusCode == 200) {
+        final decoded = jsonDecode(resp.body);
+
+        // Expected backend response formats:
+        // Option 1: {"success": true, "data": [...]}
+        // Option 2: just a list [...]
+        if (decoded is Map<String, dynamic>) {
+          if (decoded['success'] == true && decoded['data'] is List) {
+            return List<Map<String, dynamic>>.from(decoded['data']);
+          }
+        } else if (decoded is List) {
+          return List<Map<String, dynamic>>.from(decoded);
+        }
+        return [];
+      } else {
+        log('fetchChallanData: Failed with ${resp.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      log('fetchChallanData: Exception - $e');
+      return [];
+    }
+  }
 }
