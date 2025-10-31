@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:snow_trading_cool/services/challan_api.dart';
+import 'package:intl/intl.dart';
 
 class ChallanScreen extends StatefulWidget {
   const ChallanScreen({super.key});
@@ -14,10 +15,9 @@ class _ChallanScreenState extends State<ChallanScreen> {
   TextEditingController customerNameController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController transporterController = TextEditingController();
-  TextEditingController vehicleDriverDetailsController =
-      TextEditingController();
+  TextEditingController vehicleDriverDetailsController = TextEditingController();
   TextEditingController mobileNumberController = TextEditingController();
-
+  TextEditingController dateController = TextEditingController();
   TextEditingController smallRegularQtyController = TextEditingController();
   TextEditingController smallRegularSrNoController = TextEditingController();
   TextEditingController smallFloronQtyController = TextEditingController();
@@ -71,6 +71,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
   Future<void> _saveChallanData() async {
     final customerName = customerNameController.text;
     final challanType = type;
+    final date = dateController.text;
     final location = locationController.text;
     final transporter = transporterController.text;
     final vehicleDriverDetails = vehicleDriverDetailsController.text;
@@ -83,9 +84,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
     final bigRegularSrNo = bigRegularSrNoController.text;
     final bigFloronQty = bigFloronQtyController.text;
     final bigFloronSrNo = bigFloronSrNoController.text;
+    // final dat =
 
     if (customerName.isEmpty ||
         challanType.isEmpty ||
+        date.isEmpty ||
         location.isEmpty ||
         transporter.isEmpty ||
         vehicleDriverDetails.isEmpty ||
@@ -119,6 +122,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
         .challanData(
           customerName,
           challanType,
+          date,
           location,
           transporter,
           vehicleDriverDetails,
@@ -375,6 +379,79 @@ class _ChallanScreenState extends State<ChallanScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    Text(
+                      "Date",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromRGBO(20, 20, 20, 1),
+                      ),
+                    ),
+                    TextField(
+                      controller: dateController,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromRGBO(20, 20, 20, 1),
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 14,
+                        ),
+                        suffixIcon: Icon(Icons.calendar_month_outlined),
+                        hintText: "Oct 31, 2025",
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color.fromRGBO(156, 156, 156, 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color.fromRGBO(156, 156, 156, 1),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color.fromRGBO(156, 156, 156, 1),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          // initialDate: DateTime.now(),
+                          firstDate: DateTime(2024),
+                          lastDate: DateTime.now(),
+                          // barrierColor: Colors.blue,
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: Color.fromRGBO(0, 140, 192, 1), // ✅ Header background & selected date
+                                  onPrimary: Colors.white,    // ✅ Header text color
+                                  onSurface: Colors.black,    // ✅ Body text color
+                                ),
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Color.fromRGBO(0, 140, 192, 1), // ✅ OK/Cancel button color
+                                  ),
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        String formatedDate = DateFormat.yMMMd().format(
+                          pickedDate!,
+                        );
+                        setState(() {
+                          dateController.text = formatedDate;
+                        });
+                      },
                     ),
                     _buildTitleAndField(
                       title: "Location",

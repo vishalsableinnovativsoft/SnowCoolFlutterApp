@@ -12,6 +12,7 @@ class ChallanApi {
   Future<bool> challanData(
     String customerName,
     String challanType,
+    String challanDate,
     String location,
     String transporter,
     String vehicleDriverDetails,
@@ -32,6 +33,7 @@ class ChallanApi {
     final body = jsonEncode({
       'customerName': customerName,
       'challanType': challanType,
+      'date': challanDate,
       'location': location,
       'transporter': transporter,
       'vehicleDriverDetails': vehicleDriverDetails,
@@ -48,6 +50,7 @@ class ChallanApi {
 
     log(customerName);
     log(challanType);
+    log(challanDate);
     log(location);
     log(transporter);
     log(vehicleDriverDetails);
@@ -103,6 +106,7 @@ class ChallanApi {
   Future<List<Map<String, dynamic>>> fetchChallanData({
     String? customerName,
     String? challanType,
+    String? challanDate,
     String? location,
     String? transporter,
     String? vehicleDriverDetails,
@@ -126,6 +130,7 @@ class ChallanApi {
         'customerName': customerName,
       if (challanType != null && challanType.isNotEmpty)
         'challanType': challanType,
+      if (challanDate != null && challanDate.isNotEmpty) 'challanDate': challanDate,
       if (location != null && location.isNotEmpty) 'location': location,
       if (transporter != null && transporter.isNotEmpty)
         'transporter': transporter,

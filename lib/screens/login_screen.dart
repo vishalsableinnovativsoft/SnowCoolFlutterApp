@@ -381,7 +381,7 @@ class _LoginFormWrapper extends StatelessWidget {
               controller: usernameController,
               label: '',
               hint: 'Enter your username',
-              keyboardType: TextInputType.phone,
+              // keyboardType: TextInputType.phone,
               icon: Icons.person,
               textColor: Colors.black87,
               borderColor: usernameInvalid ? Colors.red : null,
