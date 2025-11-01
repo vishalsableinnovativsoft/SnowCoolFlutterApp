@@ -16,6 +16,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
   TextEditingController locationController = TextEditingController();
   TextEditingController transporterController = TextEditingController();
   TextEditingController vehicleDriverDetailsController = TextEditingController();
+  TextEditingController vehicleNumberController = TextEditingController();
   TextEditingController mobileNumberController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController smallRegularQtyController = TextEditingController();
@@ -75,6 +76,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
     final location = locationController.text;
     final transporter = transporterController.text;
     final vehicleDriverDetails = vehicleDriverDetailsController.text;
+    final vehicleNumber = vehicleNumberController.text;
     final mobileNumber = mobileNumberController.text;
     final smallRegularQty = smallRegularQtyController.text;
     final smallRegularSrNo = smallRegularSrNoController.text;
@@ -84,7 +86,6 @@ class _ChallanScreenState extends State<ChallanScreen> {
     final bigRegularSrNo = bigRegularSrNoController.text;
     final bigFloronQty = bigFloronQtyController.text;
     final bigFloronSrNo = bigFloronSrNoController.text;
-    // final dat =
 
     if (customerName.isEmpty ||
         challanType.isEmpty ||
@@ -92,6 +93,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
         location.isEmpty ||
         transporter.isEmpty ||
         vehicleDriverDetails.isEmpty ||
+        vehicleNumber.isEmpty ||
         mobileNumber.isEmpty ||
         smallRegularQty.isEmpty ||
         smallRegularSrNo.isEmpty ||
@@ -126,6 +128,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
           location,
           transporter,
           vehicleDriverDetails,
+          vehicleNumber,
           mobileNumber,
           smallRegularQty,
           smallRegularSrNo,
@@ -189,6 +192,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
     locationController.dispose();
     transporterController.dispose();
     vehicleDriverDetailsController.dispose();
+    vehicleNumberController.dispose();
     mobileNumberController.dispose();
     smallRegularQtyController.dispose();
     smallRegularSrNoController.dispose();
@@ -431,13 +435,24 @@ class _ChallanScreenState extends State<ChallanScreen> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: Color.fromRGBO(0, 140, 192, 1), // ✅ Header background & selected date
-                                  onPrimary: Colors.white,    // ✅ Header text color
-                                  onSurface: Colors.black,    // ✅ Body text color
+                                  primary: Color.fromRGBO(
+                                    0,
+                                    140,
+                                    192,
+                                    1,
+                                  ), // ✅ Header background & selected date
+                                  onPrimary:
+                                      Colors.white, // ✅ Header text color
+                                  onSurface: Colors.black, // ✅ Body text color
                                 ),
                                 textButtonTheme: TextButtonThemeData(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: Color.fromRGBO(0, 140, 192, 1), // ✅ OK/Cancel button color
+                                    foregroundColor: Color.fromRGBO(
+                                      0,
+                                      140,
+                                      192,
+                                      1,
+                                    ), // ✅ OK/Cancel button color
                                   ),
                                 ),
                               ),
@@ -464,11 +479,15 @@ class _ChallanScreenState extends State<ChallanScreen> {
                       hintText: "Enter Transporter Details",
                     ),
                     _buildTitleAndField(
-                      title: "Vehicle/Driver Details",
+                      title: "Vehicle Details",
                       controller: vehicleDriverDetailsController,
-                      hintText: "Enter Transporter Details",
+                      hintText: "Enter Vehicle Details",
                     ),
-
+                    _buildTitleAndField(
+                      title: "Driver Details",
+                      controller: vehicleNumberController,
+                      hintText: "Enter Driver Details",
+                    ),
                     Text(
                       "Mobile Number",
                       style: TextStyle(
@@ -885,6 +904,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                     locationController.clear();
                     transporterController.clear();
                     vehicleDriverDetailsController.clear();
+                    vehicleNumberController.clear();
                     mobileNumberController.clear();
                     smallRegularQtyController.clear();
                     smallRegularSrNoController.clear();
@@ -925,6 +945,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                     locationController.clear();
                     transporterController.clear();
                     vehicleDriverDetailsController.clear();
+                    vehicleNumberController.clear();
                     mobileNumberController.clear();
                     smallRegularQtyController.clear();
                     smallRegularSrNoController.clear();

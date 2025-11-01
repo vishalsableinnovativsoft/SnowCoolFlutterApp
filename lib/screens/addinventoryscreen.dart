@@ -175,14 +175,6 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
           color: const Color.fromRGBO(0, 140, 192, 1),
         ),
         actionsPadding: EdgeInsets.symmetric(horizontal: 12),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.cancel_outlined, size: 30),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
