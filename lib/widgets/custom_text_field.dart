@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-class CustomTextField extends StatefulWidget {
+class CustomTextField extends StatelessWidget {
   final String label;
   final String hint;
   final bool obscureText;
-  final bool enablePasswordToggle;
   final TextInputType keyboardType;
   final IconData icon;
   final Color? textColor;
@@ -21,7 +20,6 @@ class CustomTextField extends StatefulWidget {
     required this.label,
     required this.hint,
     this.obscureText = false,
-    this.enablePasswordToggle = false,
     this.keyboardType = TextInputType.text,
     required this.icon,
     this.textColor,
@@ -33,91 +31,38 @@ class CustomTextField extends StatefulWidget {
     this.controller,
     this.onChanged,
   });
-  @override
-  State<CustomTextField> createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  late final TextEditingController _controller;
-  late final bool _ownController;
-  bool _hasText = false;
-  late bool _obscureText;
-
-  void _listener() {
-    final has = _controller.text.isNotEmpty;
-    if (has != _hasText) {
-      setState(() => _hasText = has);
-    }
-  }
-
-  void _toggleObscure() {
-    setState(() => _obscureText = !_obscureText);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _ownController = widget.controller == null;
-    _controller = widget.controller ?? TextEditingController();
-    _hasText = _controller.text.isNotEmpty;
-    _obscureText = widget.obscureText;
-    _controller.addListener(_listener);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_listener);
-    if (_ownController) {
-      _controller.dispose();
-    }
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 64, // Kept taller for comfortable touch target
+      height: 40,
       child: Container(
         decoration: BoxDecoration(
-          color: widget.fillColor ?? Colors.white,
+          color: fillColor ?? Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: widget.borderColor ?? Colors.grey.withOpacity(0.5),
+            color: borderColor ?? Colors.grey.withOpacity(0.5),
             width: 0.6,
           ),
         ),
         child: TextField(
-          controller: _controller,
-          onChanged: widget.onChanged,
-          style: TextStyle(color: widget.textColor ?? Colors.black87),
-          obscureText: _obscureText,
-          keyboardType: widget.keyboardType,
-          textAlign: TextAlign.start, // Always left-aligned, no center for hint
-          textAlignVertical: TextAlignVertical.center,
+          controller: controller,
+          onChanged: onChanged,
+          style: TextStyle(color: textColor ?? Colors.black87),
+          obscureText: obscureText,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
-            labelText: widget.label,
-            hintText: widget.hint,
-            hintStyle: widget.hintStyle ?? const TextStyle(color: Colors.grey),
-            labelStyle: TextStyle(color: widget.labelColor ?? Colors.grey),
+            labelText: label,
+            hintText: hint,
+            hintStyle: hintStyle ?? const TextStyle(color: Colors.grey),
+            labelStyle: TextStyle(color: labelColor ?? Colors.grey),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+            contentPadding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
             prefixIcon: Padding(
-              padding: const EdgeInsets.only(left: 12, top: 0, bottom: 0),
-              child: Icon(widget.icon, color: widget.iconColor ?? Colors.grey),
+              padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
+              child: Icon(icon, color: iconColor ?? Colors.grey),
             ),
-            suffixIcon: widget.enablePasswordToggle
-                ? Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 0, bottom: 0),
-                    child: IconButton(
-                      icon: Icon(
-                        _obscureText ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.grey,
-                      ),
-                      onPressed: _toggleObscure,
-                    ),
-                  )
-                : null,
           ),
         ),
       ),
