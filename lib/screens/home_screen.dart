@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/screens/addinventoryscreen.dart';
+import 'package:snow_trading_cool/screens/profile_screen.dart';
+import 'package:snow_trading_cool/screens/user_create_screen.dart'; // Import for User Create
+import 'package:snow_trading_cool/utils/token_manager.dart';
+import 'package:snow_trading_cool/services/profile_api.dart'; // Import for profile check
 import 'challan_screen.dart';
 import 'create_customer_screen.dart';
 import 'login_screen.dart';
 import '../services/logout_api.dart';
-import '../utils/token_manager.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
             duration: const Duration(seconds: 2),
           ),
         );
-
+        
         // Always navigate to login for security (whether API succeeded or not)
         Navigator.pushAndRemoveUntil(
           context,
@@ -78,6 +81,31 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoggingOut = false;
         });
       }
+    }
+  }
+
+  Future<void> _handleProfile() async {
+    final bool hasProfile = await _checkProfileExists();
+    
+    if (hasProfile) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+      );
+    }
+  }
+
+  Future<bool> _checkProfileExists() async {
+    final ProfileApi profileApi = ProfileApi();
+    try {
+      final response = await profileApi.getProfile(); // Real API call
+      return response.success && response.data != null;
+    } catch (e) {
+      print('Profile check error: $e');
+      return false; // Default to form if error
     }
   }
 
@@ -158,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final double titleFontSize = 12.0;
     final double countFontSize = isMobile ? 22.0 : 26.0;
     final double labelFontSize = isMobile ? 13.0 : 15.0;
-    final double typeFontSize = isMobile ? 13.0 : 14.0;
+    final double typeFontSize = isMobile ? 14.0 : 16.0;
     final double orderCountFontSize = isMobile ? 18.0 : 22.0;
     final double orderLabelFontSize = isMobile ? 12.0 : 13.0;
     final double iconSize = isMobile ? 15.0 : 17.0;
@@ -166,10 +194,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final double sectionGap = isMobile ? 12.0 : 16.0;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF008CC0),
+        backgroundColor: const Color.fromRGBO(0, 140, 192, 1),
         elevation: 0,
-        // tighten spacing between leading icon and title
         leadingWidth: isMobile ? 44 : 48,
         titleSpacing: isMobile ? 6 : 8,
         leading: Builder(
@@ -192,8 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 transitionBuilder: (ctx, animation, secondaryAnimation, child) {
                   final width = MediaQuery.of(context).size.width;
-                  // Panel occupies left 50% of the screen on larger screens, but
-                  // clamp to a reasonable minimum so it doesn't get too narrow.
                   final panelWidth = (width * 0.5).clamp(260.0, width);
 
                   return Stack(
@@ -201,16 +227,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SlideTransition(
-                          position:
-                              Tween<Offset>(
-                                begin: const Offset(-1.0, 0.0),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOut,
-                                ),
-                              ),
+                          position: Tween<Offset>(
+                            begin: const Offset(-1.0, 0.0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
                           child: Material(
                             color: Colors.white,
                             elevation: 4,
@@ -229,8 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Navigator.of(ctx).pop();
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (_) =>
-                                                const ChallanScreen(),
+                                            builder: (_) => const ChallanScreen(),
                                           ),
                                         );
                                       },
@@ -243,8 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Navigator.of(ctx).pop();
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (_) =>
-                                                const CreateCustomerScreen(),
+                                            builder: (_) => const CreateCustomerScreen(),
                                           ),
                                         );
                                       },
@@ -255,7 +278,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       trailing: const Icon(Icons.add),
                                       onTap: () {
                                         Navigator.of(ctx).pop();
-                                        // TODO: navigate to Items/Goods screen
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => const Addinventoryscreen(),
+                                          ),
+                                        );
                                       },
                                     ),
                                     const Spacer(),
@@ -296,26 +323,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          // Profile popup: shows 'Profile' then 'Logout' beneath it.
+          // Profile icon with popup menu - Logout replaced with User Create
           Padding(
             padding: EdgeInsets.only(right: isMobile ? 8 : 12),
             child: PopupMenuButton<String>(
-              offset: Offset(0, isMobile ? 46 : 52),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              onSelected: (value) {
-                if (value == 'logout') {
-                  _showLogoutConfirmation();
-                } else if (value == 'profile') {
-                  // TODO: navigate to profile screen
-                }
-              },
-              itemBuilder: (ctx) => [
-                const PopupMenuItem(value: 'profile', child: Text('Profile')),
-                const PopupMenuItem(value: 'logout', child: Text('Logout')),
-              ],
-              child: CircleAvatar(
+              icon: CircleAvatar(
                 radius: isMobile ? 16 : 18,
                 backgroundColor: Colors.grey.shade300,
                 child: Icon(
@@ -324,6 +336,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: isMobile ? 20 : 22,
                 ),
               ),
+              onSelected: (value) {
+                if (value == 'profile') {
+                  _handleProfile();
+                } else if (value == 'user_create') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const UserCreateScreen()),
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'profile',
+                  child: ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text('Profile'),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'user_create',
+                  child: ListTile(
+                    leading: Icon(Icons.person_add),
+                    title: Text('User Create'),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -346,14 +383,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: verticalGap),
 
-            // Empty Card - Fixed Height + FittedBox
+            // Inventory Card
             Container(
               width: double.infinity,
               height: isMobile ? 60 : 70,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3F3),
+                color: const Color.fromRGBO(255, 228, 228, 1),
                 borderRadius: BorderRadius.circular(cardRadius),
+                border: Border.all(color: const Color(0xFFF0D0D0), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromRGBO(255, 228, 228, 1).withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -367,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.inter(
                         fontSize: countFontSize,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: const Color.fromRGBO(0, 140, 192, 1),
                       ),
                     ),
                     Text(
@@ -387,8 +432,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3F3),
+                color: const Color.fromRGBO(255, 228, 228, 1),
                 borderRadius: BorderRadius.circular(cardRadius),
+                border: Border.all(color: const Color(0xFFF0D0D0), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromRGBO(255, 228, 228, 1).withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -415,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: verticalGap),
 
-            // Customers Card - FittedBox
+            // Customers Card
             Container(
               height: isMobile ? 56 : 64,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -423,6 +476,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(cardRadius),
                 border: Border.all(color: const Color(0xFFE0E0E0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -440,7 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: GoogleFonts.inter(
                               fontSize: countFontSize,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: const Color.fromRGBO(0, 140, 192, 1),
                             ),
                           ),
                           Text(
@@ -478,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: verticalGap),
 
-            // Received & Delivered Cards - FittedBox
+            // Received & Delivered Cards
             Row(
               children: [
                 Expanded(
@@ -512,10 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF1976D2),
         onPressed: () async {
-          // Show a small popup menu above the FAB. Use showMenu so it appears
-          // as a compact popup (works for web, mobile and desktop).
           final size = MediaQuery.of(context).size;
-          // approximate positions so the menu shows near bottom-right FAB
           final left = (size.width - 200).clamp(0.0, size.width - 80.0);
           final top = size.height - 200;
 
@@ -549,14 +606,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (selected == null) return;
           if (selected == 'challan') {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const ChallanScreen()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChallanScreen()));
             return;
           }
 
           if (selected == 'view_customer') {
-            // show a nested small menu (only Create Customer)
             final sub = await showMenu<String>(
               context: context,
               position: RelativeRect.fromLTRB(left, top - 120, 16, 16),
@@ -589,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTypeRow(String title, String value, double fontSize) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -597,8 +651,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               title,
               style: GoogleFonts.inter(
-                fontSize: fontSize,
-                color: Colors.black87,
+                fontSize: fontSize + 2,
+                color: Colors.black,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -606,9 +660,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: fontSize,
+              fontSize: fontSize + 2,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Colors.black,
             ),
           ),
         ],
@@ -631,6 +685,13 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: const Color(0xFFE0E0E0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -648,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.inter(
                       fontSize: countSize,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: const Color.fromRGBO(0, 140, 192, 1),
                     ),
                   ),
                   Text(
