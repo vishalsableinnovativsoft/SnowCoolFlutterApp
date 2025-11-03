@@ -5,6 +5,7 @@ import 'package:snow_trading_cool/screens/profile_screen.dart';
 import 'package:snow_trading_cool/screens/user_create_screen.dart'; // Import for User Create
 import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/services/profile_api.dart'; // Import for profile check
+import 'package:snow_trading_cool/screens/view_challan.dart';
 import 'challan_screen.dart';
 import 'create_customer_screen.dart';
 import 'login_screen.dart';
@@ -606,7 +607,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (selected == null) return;
           if (selected == 'challan') {
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChallanScreen()));
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ViewChallanScreen()));
             return;
           }
 
