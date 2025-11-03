@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snow_trading_cool/screens/setting_screen.dart';
 import 'package:snow_trading_cool/screens/user_create_screen.dart';
 import '../services/profile_api.dart'; // Assume this handles fetch/update API
 
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const UserCreateScreen()),
+      MaterialPageRoute(builder: (context) => ProfileApplicationSettingScreen()),
     );
   }
 
