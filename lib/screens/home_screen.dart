@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/screens/addinventoryscreen.dart';
 import 'package:snow_trading_cool/screens/profile_screen.dart';
 import 'package:snow_trading_cool/screens/user_create_screen.dart'; // Import for User Create
+import 'package:snow_trading_cool/screens/view_user_screen.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/services/profile_api.dart'; // Import for profile check
 import 'package:snow_trading_cool/screens/view_challan.dart';
@@ -65,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SnackBar(
             content: Text('Logged out locally due to network error'),
             backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
 
@@ -75,12 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (route) => false,
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoggingOut = false;
-        });
       }
     }
   }
@@ -344,6 +339,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const UserCreateScreen()),
                   );
+                } else if (value == 'view_users') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const UserViewScreen()),
+                  );
                 }
               },
               itemBuilder: (context) => [
@@ -355,10 +354,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const PopupMenuItem(
-                  value: 'user_create',
+                  value: 'view_users',
                   child: ListTile(
-                    leading: Icon(Icons.person_add),
-                    title: Text('User Create'),
+                    leading: Icon(Icons.group),
+                    title: Text('Users'),
                   ),
                 ),
               ],
