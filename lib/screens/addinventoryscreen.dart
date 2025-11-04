@@ -175,14 +175,6 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
           color: const Color.fromRGBO(0, 140, 192, 1),
         ),
         actionsPadding: EdgeInsets.symmetric(horizontal: 12),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.cancel_outlined, size: 30),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -230,29 +222,59 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: () {
-                _saveProductName();
-              },
-              child: Container(
-                height: 60,
-                width: MediaQuery.of(context).size.width / 2.3,
-
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: const Color.fromRGBO(0, 140, 192, 1),
-                ),
-                child: Center(
-                  child: Text(
-                    "Save",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: (){
+                    productNameController.clear();
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width / 2.2,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: const Color.fromRGBO(0, 140, 192, 1),
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Reset",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color.fromRGBO(0, 140, 192, 1),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+                Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    _saveProductName();
+                  },
+                  child: Container(
+                    height: 46,
+                    width: MediaQuery.of(context).size.width / 2.3,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color.fromRGBO(0, 140, 192, 1),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Save",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

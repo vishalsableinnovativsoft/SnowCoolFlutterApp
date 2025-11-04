@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:snow_trading_cool/services/challan_api.dart';
-
+import 'package:intl/intl.dart';
 
 class ChallanScreen extends StatefulWidget {
   const ChallanScreen({super.key});
@@ -15,10 +15,10 @@ class _ChallanScreenState extends State<ChallanScreen> {
   TextEditingController customerNameController = TextEditingController();
   TextEditingController locationController = TextEditingController();
   TextEditingController transporterController = TextEditingController();
-  TextEditingController vehicleDriverDetailsController =
-      TextEditingController();
+  TextEditingController vehicleDriverDetailsController = TextEditingController();
+  TextEditingController vehicleNumberController = TextEditingController();
   TextEditingController mobileNumberController = TextEditingController();
-
+  TextEditingController dateController = TextEditingController();
   TextEditingController smallRegularQtyController = TextEditingController();
   TextEditingController smallRegularSrNoController = TextEditingController();
   TextEditingController smallFloronQtyController = TextEditingController();
@@ -72,9 +72,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
   Future<void> _saveChallanData() async {
     final customerName = customerNameController.text;
     final challanType = type;
+    final date = dateController.text;
     final location = locationController.text;
     final transporter = transporterController.text;
     final vehicleDriverDetails = vehicleDriverDetailsController.text;
+    final vehicleNumber = vehicleNumberController.text;
     final mobileNumber = mobileNumberController.text;
     final smallRegularQty = smallRegularQtyController.text;
     final smallRegularSrNo = smallRegularSrNoController.text;
@@ -87,9 +89,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
 
     if (customerName.isEmpty ||
         challanType.isEmpty ||
+        date.isEmpty ||
         location.isEmpty ||
         transporter.isEmpty ||
         vehicleDriverDetails.isEmpty ||
+        vehicleNumber.isEmpty ||
         mobileNumber.isEmpty ||
         smallRegularQty.isEmpty ||
         smallRegularSrNo.isEmpty ||
@@ -100,7 +104,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
         bigFloronQty.isEmpty ||
         bigFloronSrNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
+          shape: StadiumBorder(side: BorderSide(color: Colors.red)),
+          behavior: SnackBarBehavior.floating,
+          // margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          width: MediaQuery.of(context).size.width - 64,
           content: Text(
             'Please fill all fields',
             style: TextStyle(color: Colors.white),
@@ -116,9 +124,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
         .challanData(
           customerName,
           challanType,
+          date,
           location,
           transporter,
           vehicleDriverDetails,
+          vehicleNumber,
           mobileNumber,
           smallRegularQty,
           smallRegularSrNo,
@@ -133,7 +143,10 @@ class _ChallanScreenState extends State<ChallanScreen> {
           setState(() => _loading = false);
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
+                shape: StadiumBorder(side: BorderSide(color: Colors.green)),
+                behavior: SnackBarBehavior.floating,
+                width: MediaQuery.of(context).size.width - 64,
                 content: Text(
                   'Challan data saved successfully',
                   style: TextStyle(color: Colors.white),
@@ -143,7 +156,10 @@ class _ChallanScreenState extends State<ChallanScreen> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
+                shape: StadiumBorder(side: BorderSide(color: Colors.red)),
+                behavior: SnackBarBehavior.floating,
+                width: MediaQuery.of(context).size.width - 64,
                 content: Text(
                   'Failed to save challan data',
                   style: TextStyle(color: Colors.white),
@@ -157,6 +173,9 @@ class _ChallanScreenState extends State<ChallanScreen> {
           setState(() => _loading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              shape: StadiumBorder(side: BorderSide(color: Colors.red)),
+              behavior: SnackBarBehavior.floating,
+              width: MediaQuery.of(context).size.width - 64,
               content: Text(
                 'Error: $error',
                 style: const TextStyle(color: Colors.white),
@@ -167,11 +186,13 @@ class _ChallanScreenState extends State<ChallanScreen> {
         });
   }
 
+  @override
   void dispose() {
     customerNameController.dispose();
     locationController.dispose();
     transporterController.dispose();
     vehicleDriverDetailsController.dispose();
+    vehicleNumberController.dispose();
     mobileNumberController.dispose();
     smallRegularQtyController.dispose();
     smallRegularSrNoController.dispose();
@@ -195,17 +216,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
           fontWeight: FontWeight.w600,
           color: const Color.fromRGBO(0, 140, 192, 1),
         ),
-        actionsPadding: EdgeInsets.symmetric(horizontal: 12),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              Icons.cancel_outlined,
-              color: Color.fromRGBO(142, 142, 142, 1),
-              size: 30,
-            ),
-          ),
-        ],
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -253,6 +264,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
                         hintText: "Enter Customer Name",
                       ),
                       onChanged: searchCustomer,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
                     ),
                     if (showDropdown)
                       Container(
@@ -294,7 +310,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                           onTap: () {
                             setState(() {
                               challanTypeSelected = true;
-                              type = "Received";
+                              type = "Receive";
                             });
                           },
                           child: Row(
@@ -320,7 +336,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                "Received",
+                                "Receive",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -368,6 +384,90 @@ class _ChallanScreenState extends State<ChallanScreen> {
                         ),
                       ],
                     ),
+                    Text(
+                      "Date",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromRGBO(20, 20, 20, 1),
+                      ),
+                    ),
+                    TextField(
+                      controller: dateController,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromRGBO(20, 20, 20, 1),
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 14,
+                        ),
+                        suffixIcon: Icon(Icons.calendar_month_outlined),
+                        hintText: "Oct 31, 2025",
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color.fromRGBO(156, 156, 156, 1),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color.fromRGBO(156, 156, 156, 1),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color.fromRGBO(156, 156, 156, 1),
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          // initialDate: DateTime.now(),
+                          firstDate: DateTime(2024),
+                          lastDate: DateTime.now(),
+                          // barrierColor: Colors.blue,
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: Color.fromRGBO(
+                                    0,
+                                    140,
+                                    192,
+                                    1,
+                                  ), // ✅ Header background & selected date
+                                  onPrimary:
+                                      Colors.white, // ✅ Header text color
+                                  onSurface: Colors.black, // ✅ Body text color
+                                ),
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Color.fromRGBO(
+                                      0,
+                                      140,
+                                      192,
+                                      1,
+                                    ), // ✅ OK/Cancel button color
+                                  ),
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        String formatedDate = DateFormat.yMMMd().format(
+                          pickedDate!,
+                        );
+                        setState(() {
+                          dateController.text = formatedDate;
+                        });
+                      },
+                    ),
                     _buildTitleAndField(
                       title: "Location",
                       controller: locationController,
@@ -379,11 +479,15 @@ class _ChallanScreenState extends State<ChallanScreen> {
                       hintText: "Enter Transporter Details",
                     ),
                     _buildTitleAndField(
-                      title: "Vehicle/Driver Details",
+                      title: "Vehicle Details",
                       controller: vehicleDriverDetailsController,
-                      hintText: "Enter Transporter Details",
+                      hintText: "Enter Vehicle Details",
                     ),
-
+                    _buildTitleAndField(
+                      title: "Driver Details",
+                      controller: vehicleNumberController,
+                      hintText: "Enter Driver Details",
+                    ),
                     Text(
                       "Mobile Number",
                       style: TextStyle(
@@ -426,7 +530,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                           color: Color.fromRGBO(238, 238, 238, 1),
                         ),
                         borderRadius: BorderRadius.circular(
-                          8,
+                          12,
                         ), // outer curved border radius
                       ),
                       child: Table(
@@ -439,15 +543,20 @@ class _ChallanScreenState extends State<ChallanScreen> {
                           right: BorderSide.none,
                           horizontalInside: BorderSide.none,
                           verticalInside: BorderSide.none,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        columnWidths: {
+                          0: FlexColumnWidth(0.7),
+                          1: FlexColumnWidth(0.5),
+                          // 2: FixedColumnWidth(1),
+                        },
                         children: [
                           TableRow(
                             decoration: BoxDecoration(
                               color: Color.fromRGBO(238, 238, 238, 1),
                               borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(8),
-                                topLeft: Radius.circular(8),
+                                topRight: Radius.circular(12),
+                                topLeft: Radius.circular(12),
                               ),
                             ),
                             children: [
@@ -458,7 +567,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 9, 115, 156),
+                                    color: Color.fromRGBO(0, 140, 192, 1),
                                   ),
                                 ),
                               ),
@@ -469,7 +578,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 9, 115, 156),
+                                    color: Color.fromRGBO(0, 140, 192, 1),
                                   ),
                                 ),
                               ),
@@ -480,7 +589,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 9, 115, 156),
+                                    color: Color.fromRGBO(0, 140, 192, 1),
                                   ),
                                 ),
                               ),
@@ -510,14 +619,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -538,14 +647,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -583,14 +692,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -613,14 +722,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -656,14 +765,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -686,14 +795,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -730,14 +839,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -759,14 +868,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 1.5,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderSide: const BorderSide(
                                         color: Color.fromRGBO(238, 238, 238, 1),
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                     contentPadding: EdgeInsets.all(8),
                                   ),
@@ -789,16 +898,32 @@ class _ChallanScreenState extends State<ChallanScreen> {
             ),
             Row(
               children: [
-                 GestureDetector(
+                GestureDetector(
+                  onTap: () {
+                    customerNameController.clear();
+                    locationController.clear();
+                    transporterController.clear();
+                    vehicleDriverDetailsController.clear();
+                    vehicleNumberController.clear();
+                    mobileNumberController.clear();
+                    smallRegularQtyController.clear();
+                    smallRegularSrNoController.clear();
+                    smallFloronQtyController.clear();
+                    smallFloronSrNoController.clear();
+                    bigRegularQtyController.clear();
+                    bigRegularSrNoController.clear();
+                    bigFloronQtyController.clear();
+                    bigFloronSrNoController.clear();
+                  },
                   child: Container(
                     width: MediaQuery.of(context).size.width / 2.2,
-                    height: 60,
+                    height: 46,
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: const Color.fromARGB(255, 9, 115, 156),
+                        color: const Color.fromRGBO(0, 140, 192, 1),
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
                       child: Text(
@@ -806,7 +931,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: const Color.fromARGB(255, 9, 115, 156),
+                          color: const Color.fromRGBO(0, 140, 192, 1),
                         ),
                       ),
                     ),
@@ -820,6 +945,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
                     locationController.clear();
                     transporterController.clear();
                     vehicleDriverDetailsController.clear();
+                    vehicleNumberController.clear();
                     mobileNumberController.clear();
                     smallRegularQtyController.clear();
                     smallRegularSrNoController.clear();
@@ -829,16 +955,15 @@ class _ChallanScreenState extends State<ChallanScreen> {
                     bigRegularSrNoController.clear();
                     bigFloronQtyController.clear();
                     bigFloronSrNoController.clear();
-                    
+
                     // log(customerNameController.text);
                   },
                   child: Container(
-                    height: 60,
+                    height: 46,
                     width: MediaQuery.of(context).size.width / 2.2,
-
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      color: const Color.fromARGB(255, 9, 115, 156),
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color.fromRGBO(0, 140, 192, 1),
                     ),
                     child: Center(
                       child: Text(
@@ -878,6 +1003,11 @@ class _ChallanScreenState extends State<ChallanScreen> {
         ),
         TextField(
           controller: controller,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color.fromRGBO(20, 20, 20, 1),
+          ),
           decoration: InputDecoration(
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             hintText: hintText,
