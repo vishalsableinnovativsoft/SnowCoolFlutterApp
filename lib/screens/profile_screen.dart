@@ -1,7 +1,10 @@
+import 'dart:io'; // For File
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:snow_trading_cool/screens/user_create_screen.dart';
+import 'package:image_picker/image_picker.dart'; // For ImagePicker, XFile, ImageSource
+import 'package:snow_trading_cool/screens/setting_screen.dart';
 import '../services/profile_api.dart'; // Assume this handles fetch/update API
+import 'user_create_screen.dart'; // Import for User Create navigation
 
 
 class ProfileScreen extends StatefulWidget {
@@ -14,8 +17,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
   bool _isLoading = true;
-  Map<String, dynamic> _profileData = {}; // {name, email, phone, address, company}
+  Map<String, dynamic> _profileData = {}; // {name, email, phone, address, company, photoUrl?}
+  File? _selectedImage; // Selected image file for upload/edit
   final ProfileApi _profileApi = ProfileApi();
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -62,6 +67,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery); // Gallery se pick
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+      await _uploadPhoto(); // Auto upload on select
+    }
+  }
+
+  Future<void> _editImage() async {
+    if (_selectedImage == null) {
+      // If no image selected, pick first
+      await _pickImage();
+      return;
+    }
+    // TODO: Simple edit - for now, re-pick or use a package like image_editor_plus for crop/filter
+    // Example: Re-pick for edit
+    final XFile? editedImage = await _picker.pickImage(source: ImageSource.gallery);
+    if (editedImage != null) {
+      setState(() {
+        _selectedImage = File(editedImage.path);
+      });
+      await _uploadPhoto(); // Upload edited
+    }
+  }
+
+  Future<void> _uploadPhoto() async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _profileApi.uploadProfilePhoto(_selectedImage!);
+      if (response.success) {
+        setState(() {
+          _profileData['photoUrl'] = response.data?['photoUrl']; // Assume response has photoUrl
+          _selectedImage = null; // Clear after upload
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Photo uploaded successfully!'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response.message ?? 'Upload failed'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _updateProfile() async {
     // TODO: Implement update logic similar to create
     // For now, just toggle edit mode
@@ -86,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const UserCreateScreen()),
+      MaterialPageRoute(builder: (context) => const ProfileApplicationSettingScreen()),
     );
   }
 
@@ -101,6 +175,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
+
+    final String? photoUrl = _profileData['photoUrl'];
+    final Widget avatarContent = _selectedImage != null 
+        ? ClipOval(child: Image.file(_selectedImage!, fit: BoxFit.cover, width: 100, height: 100))
+        : photoUrl != null 
+            ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover, width: 100, height: 100, errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50)))
+            : const Icon(Icons.person, size: 50);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -117,12 +198,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: _navigateToUserCreate, // User Create icon
             tooltip: 'Create User',
           ),
           IconButton(
-            icon: Icon(Icons.settings, color: Colors.white),
+            icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: _navigateToSettings, // Settings icon
             tooltip: 'Settings',
           ),
@@ -137,17 +218,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Profile Avatar
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey.shade300,
-                  child: Icon(
-                    Icons.person,
-                    size: 50,
-                    color: Colors.white,
+              // Profile Avatar with upload/edit
+              Stack(
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage, // Tap to upload
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey.shade300,
+                      child: avatarContent,
+                    ),
                   ),
-                ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _editImage, // Edit icon for photo edit
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               // Name
