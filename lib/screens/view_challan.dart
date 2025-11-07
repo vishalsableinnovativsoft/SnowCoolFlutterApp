@@ -144,6 +144,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
     },
   ];
 
+  bool _selectionMode = false;
+
   final ChallanApi challanApi = ChallanApi();
   List<Map<String, dynamic>> _challans = [];
   List<Map<String, dynamic>> _filteredData = [];
@@ -250,48 +252,12 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   }
 
   // 🔹 Edit Challan
-  Future<void> _editChallan(Map challanId) async {
-
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ChallanScreen(challanId: challanId)));
-
-    // final controller = TextEditingController();
-
-    // final newCustomerName = await showDialog<String>(
-    //   context: context,
-    //   builder: (_) => AlertDialog(
-    //     title: const Text('Edit Challan'),
-    //     content: TextField(
-    //       controller: controller,
-    //       decoration: const InputDecoration(
-    //         labelText: 'Enter new customer name',
-    //       ),
-    //     ),
-    //     actions: [
-    //       TextButton(
-    //         onPressed: () => Navigator.pop(context),
-    //         child: const Text('Cancel'),
-    //       ),
-    //       ElevatedButton(
-    //         onPressed: () => Navigator.pop(context, controller.text),
-    //         child: const Text('Save'),
-    //       ),
-    //     ],
-    //   ),
-    // );
-
-    // if (newCustomerName == null || newCustomerName.isEmpty) return;
-
-    // final success = await challanApi.editChallanData(
-    //   challanId,
-    //   customerName: newCustomerName,
-    // );
-
-    // if (success) {
-    //   showSuccessToast(context, "Challan updated successfully");
-    //   _fetchChallans();
-    // } else {
-    //   showErrorToast(context, "Failed to update challan");
-    // }
+  Future<void> _editChallan(Map challanRow) async {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => ChallanScreen(challanId: challanRow),
+      ),
+    );
   }
 
   Future<void> _generateAndPrintPdf(Map<String, dynamic> challan) async {
@@ -507,7 +473,6 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                       backgroundColor: const Color.fromRGBO(0, 140, 192, 1),
                     ),
                     onPressed: () async {
-                      // Step 1: Confirm delete
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (_) => AlertDialog(
@@ -533,24 +498,27 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
 
                       if (confirmed != true) return;
 
-                      // Step 2: Call API for each challan ID
                       bool allDeleted = true;
                       for (final id in _selectedIds) {
                         final success = await challanApi.deleteChallanData(id);
                         if (!success) allDeleted = false;
                       }
 
-                      // Step 3: Clear selection & refresh data
                       setState(() {
                         _selectedIds.clear();
                       });
                       await _fetchChallans();
 
-                      // Step 4: Show result message
                       if (allDeleted) {
-                        showSuccessToast(context, 'All selected challans deleted successfully');
+                        showSuccessToast(
+                          context,
+                          'All selected challans deleted successfully',
+                        );
                       } else {
-                        showErrorToast(context, "Some challans could not be deleted");
+                        showErrorToast(
+                          context,
+                          "Some challans could not be deleted",
+                        );
                       }
                     },
                     icon: const Icon(Icons.delete, color: Colors.white),
@@ -560,31 +528,30 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                     ),
                   ),
 
-                // if (_selectedIds.isNotEmpty)
-                //   ElevatedButton.icon(
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: Color.fromRGBO(0, 140, 192, 1),
-                //     ),
-                //     onPressed: () {
-                //       showSuccessToast(
-                //         context,
-                //         "Deleting ${_selectedIds.length} selected records...",
-                //       );
-                //     },
-                //     icon: const Icon(Icons.print, color: Colors.white),
-                //     label: const Text(
-                //       "Delete Multiple",
-                //       style: TextStyle(color: Colors.white),
-                //     ),
-                //   ),
+                const SizedBox(width: 10),
+
+                ElevatedButton.icon(
+                  icon: Icon(
+                    _selectionMode ? Icons.visibility_off : Icons.check_box,
+                    color: Colors.white,
+                  ),
+                  label: Text(_selectionMode ? 'Hide Select' : 'Enable Select'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF008CC0),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _selectionMode = !_selectionMode;
+                      _selectedIds.clear();
+                    });
+                  },
+                ),
               ],
             ),
           ),
 
-          // 🧾 Fixed First Column + Scrollable Columns
           Row(
             children: [
-              // Fixed Column (Checkbox + Name)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
@@ -604,7 +571,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                         height: 50,
                         // color: Colors.teal.shade100,
                         child: Row(
-                          children: const [
+                          children: [
+                            if (_selectionMode)
                             SizedBox(
                               width: 50,
                               child: Center(child: Text('✓')),
@@ -650,6 +618,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                     ),
                                     child: Row(
                                       children: [
+                                        if (_selectionMode)
                                         SizedBox(
                                           width: 50,
                                           child: Checkbox(
@@ -675,7 +644,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: 650,
+                    width: 700,
                     child: Column(
                       children: [
                         // Header Row
@@ -721,7 +690,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                 ),
                               ),
                               SizedBox(
-                                width: 100,
+                                width: 150,
                                 child: Center(
                                   child: Text(
                                     'Date',
@@ -768,7 +737,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                   child: Center(child: Text(row['qty'])),
                                 ),
                                 SizedBox(
-                                  width: 100,
+                                  width: 150,
                                   child: Center(child: Text(row['date'])),
                                 ),
                                 Expanded(
@@ -782,7 +751,10 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                         ),
                                         onPressed: () {
                                           _editChallan(row);
-                                          showSuccessToast(context, "Editing Challan...");
+                                          showSuccessToast(
+                                            context,
+                                            "Editing Challan...",
+                                          );
                                         },
                                       ),
                                       IconButton(
@@ -826,7 +798,10 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                         ),
                                         onPressed: () {
                                           _generateAndPrintPdf(row);
-                                          showSuccessToast(context, 'Printing PDF...');
+                                          showSuccessToast(
+                                            context,
+                                            'Printing PDF...',
+                                          );
                                         },
                                       ),
                                     ],
