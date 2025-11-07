@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
+import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../utils/constants.dart';
@@ -36,12 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter both username and password'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      showWarningToast(context, "Please enter both username and password");
       return;
     }
 
@@ -70,6 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // navigation after the widget tree was disposed (which can cause the
       // "Trying to render a disposed EngineFlutterView" exception on web).
       if (!mounted) return;
+      showSuccessToast(context, "Logged in successfully");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),

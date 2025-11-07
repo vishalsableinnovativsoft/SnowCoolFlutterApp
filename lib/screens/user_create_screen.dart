@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import '../models/user_model.dart';
 import '../services/user_api.dart';
 
@@ -80,29 +81,14 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
               );
   
         if (response.success && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(isEditing ? 'User updated successfully!' : 'User created successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showSuccessToast(context, "User ${isEditing ? 'updated' : 'created'} successfully!");
           Navigator.pop(context); // Back to home
         } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message ?? (isEditing ? 'Failed to update user' : 'Failed to create user')),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showErrorToast(context, "Failed to ${isEditing ? 'update' : 'create'} user: ${response.message}");
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showErrorToast(context, "Error: $e");
         }
       } finally {
         if (mounted) {

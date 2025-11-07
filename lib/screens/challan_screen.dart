@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:snow_trading_cool/services/challan_api.dart';
 import 'package:intl/intl.dart';
+import 'package:snow_trading_cool/widgets/custom_toast.dart';
 
 class ChallanScreen extends StatefulWidget {
-  const ChallanScreen({super.key});
+  const ChallanScreen({super.key, Map? this.challanId});
+  final Map? challanId;
 
   @override
   State<ChallanScreen> createState() => _ChallanScreenState();
@@ -103,19 +105,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
         bigRegularSrNo.isEmpty ||
         bigFloronQty.isEmpty ||
         bigFloronSrNo.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          shape: StadiumBorder(side: BorderSide(color: Colors.red)),
-          behavior: SnackBarBehavior.floating,
-          // margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          width: MediaQuery.of(context).size.width - 64,
-          content: Text(
-            'Please fill all fields',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+        showWarningToast(context, "Please fill all fields");
       return;
     }
 
@@ -142,47 +132,14 @@ class _ChallanScreenState extends State<ChallanScreen> {
         .then((success) {
           setState(() => _loading = false);
           if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                shape: StadiumBorder(side: BorderSide(color: Colors.green)),
-                behavior: SnackBarBehavior.floating,
-                width: MediaQuery.of(context).size.width - 64,
-                content: Text(
-                  'Challan data saved successfully',
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.green,
-              ),
-            );
+            showSuccessToast(context, 'Challan data saved successfully');
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                shape: StadiumBorder(side: BorderSide(color: Colors.red)),
-                behavior: SnackBarBehavior.floating,
-                width: MediaQuery.of(context).size.width - 64,
-                content: Text(
-                  'Failed to save challan data',
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
+            showErrorToast(context, "Failed to save challan data");
           }
         })
         .catchError((error) {
           setState(() => _loading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              shape: StadiumBorder(side: BorderSide(color: Colors.red)),
-              behavior: SnackBarBehavior.floating,
-              width: MediaQuery.of(context).size.width - 64,
-              content: Text(
-                'Error: $error',
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showErrorToast(context, "Failed to save challan data");
         });
   }
 

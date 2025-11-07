@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import '../services/view_user_api.dart'; // Import the API
 import '../models/user_model.dart'; // Assume User model is here
 import 'user_create_screen.dart'; // Import for Add User navigation
@@ -41,11 +42,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading users: $e (using demo data)'),
-            backgroundColor: Colors.orange,
-          ),
+        showWarningToast(context, 'Error loading users: $e'
         );
       }
     }
@@ -86,27 +83,12 @@ class _UserViewScreenState extends State<UserViewScreen> {
         setState(() {
           user.active = isActive; // Update local model
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('User status updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessToast(context, "User status updated successfully!");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message ?? 'Failed to update status'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorToast(context, "Failed to update status: ${response.message}");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating status: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorToast(context, "Error updating status: $e");
     }
   }
 
@@ -140,18 +122,12 @@ class _UserViewScreenState extends State<UserViewScreen> {
                   setState(() {
                     _users.remove(user);
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User deleted successfully!'), backgroundColor: Colors.green),
-                  );
+                  showSuccessToast(context, "User deleted successfully!");
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(response.message ?? 'Failed to delete user'), backgroundColor: Colors.red),
-                  );
+                  showErrorToast(context, 'Failed to delete user: ${response.message}');
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error deleting user: $e'), backgroundColor: Colors.red),
-                );
+                showErrorToast(context, 'Error deleting user: $e');
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart'; // For ImagePicker, XFile, ImageSource
 import 'package:snow_trading_cool/screens/setting_screen.dart';
+import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import '../services/profile_api.dart'; // Assume this handles fetch/update API
 import 'user_create_screen.dart'; // Import for User Create navigation
 
@@ -47,12 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoading = false;
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message ?? 'Profile not found'),
-              backgroundColor: Colors.orange,
-            ),
-          );
+          showWarningToast(context, "Profile not found. Please create one.");
         }
       }
     } catch (e) {
@@ -60,9 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading profile: $e'), backgroundColor: Colors.red),
-        );
+        showErrorToast(context, "Error loading profile: $e");
       }
     }
   }
@@ -110,18 +104,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoading = false;
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Photo uploaded successfully!'), backgroundColor: Colors.green),
-          );
+          showSuccessToast(context, "Photo uploaded successfully!");
         }
       } else {
         setState(() {
           _isLoading = false;
         });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response.message ?? 'Upload failed'), backgroundColor: Colors.red),
-          );
+          showErrorToast(context, 'Upload failed: ${response.message}');
         }
       }
     } catch (e) {
@@ -129,9 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload error: $e'), backgroundColor: Colors.red),
-        );
+        showErrorToast(context, 'Upload error: $e');
       }
     }
   }
@@ -144,9 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
     if (_isEditing) {
       // Save changes here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated!'), backgroundColor: Colors.green),
-      );
+      showSuccessToast(context, "Profile Updated Successfully!");
     }
   }
 
