@@ -19,6 +19,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         // App-wide theme - Sets colors, fonts, etc. for consistency.
         primarySwatch: Colors.blue, // Primary color scheme based on blue.
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.white,
+          titleTextStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: const Color.fromRGBO(0, 140, 192, 1),
+        ),
+        ),
+        scaffoldBackgroundColor: Color.fromRGBO(255, 255, 255, 1),
       ),
       home:
           const LoginScreen(), // Sets LoginScreen as the initial route/home page.
