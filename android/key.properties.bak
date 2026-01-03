@@ -1,0 +1,4 @@
+storePassword=snowcool
+keyPassword=snowcool
+keyAlias=upload
+storeFile=../upload-keystore.jks

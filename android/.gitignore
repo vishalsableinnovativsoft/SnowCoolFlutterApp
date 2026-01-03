@@ -1,0 +1,67 @@
+# Android build artifacts & caches
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+
+# Gradle wrapper
+/gradlew
+/gradlew.bat
+gradle-wrapper.jar
+gradle-wrapper.properties
+
+# Local configuration files (never commit these)
+/local.properties
+key.properties
+android/key.properties
+
+# Keystore files — NEVER commit these, even by accident
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.pfx
+
+# Flutter/Dart build artifacts
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.packages
+build/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Generated files
+GeneratedPluginRegistrant.java
+GeneratedPluginRegistrant.kt
+
+# CMake / C++ build
+.cxx/
+android/app/src/main/jniLibs/
+android/app/src/main/libs/
+
+# Captures folder (screenshots, etc.)
+/captures/
+
+# Optional: if you use Firebase and have google-services.json per flavor
+# android/app/google-services.json
+# android/app/src/debug/google-services.json
+# android/app/src/release/google-services.json

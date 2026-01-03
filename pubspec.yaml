@@ -1,0 +1,51 @@
+name: snow_trading_cool
+description: "Snowcool Trading Co. Mobile App - Gas Cylinder Management System."
+
+publish_to: 'none'
+
+version: 1.0.10+5
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^4.0.4
+  http: ^1.5.0
+  data_table_2: ^2.6.0
+  share_plus: ^12.0.1
+  image_picker: ^1.2.0
+  flutter_styled_toast: ^2.2.1
+  lottie: ^3.3.2
+  flutter_launcher_icons: ^0.14.4
+  permission_handler: ^12.0.1
+  url_launcher: ^6.3.2
+  universal_platform: ^1.1.0
+  path_provider: ^2.1.5
+  flutter_date_range_picker: ^0.2.1
+  shared_preferences: ^2.5.3
+  animated_text_kit: ^4.3.0
+  open_filex: ^4.7.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.jpg"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.jpg"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/ 
+    - assets/lottie/
+
+  # Fonts section 
