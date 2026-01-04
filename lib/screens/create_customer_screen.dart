@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +7,6 @@ import 'package:snow_trading_cool/utils/mobileinputformater.dart';
 import 'package:snow_trading_cool/widgets/custom_loader.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import '../services/customer_api.dart';
-import 'view_customer_screen.dart';
 
 class CreateCustomerScreen extends StatefulWidget {
   final int? customerId;
@@ -25,7 +22,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
   CustomerDTO? _fetchedCustomer;
   bool _customerLoading = false;
 
-  final _formKey = GlobalKey<FormState>();
+  // final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
@@ -46,7 +43,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
 
   List<GoodsDTO> allGoods = [];
   bool _goodsLoading = true;
-  final List<Map<String, dynamic>> _productEntries = [];
+  // final List<Map<String, dynamic>> _productEntries = [];
   // List<GoodsDTO> goods = [];
 
   bool challanTypeSelected = true;
@@ -76,7 +73,6 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
       _fetchCustomerDetails();
     } else {
       _fetchGoods();
-       log("goods_loading: ${_goodsLoading}\n_isLoading: ${_isLoading}\n customerLoading: ${_customerLoading}");
     }
 
    
@@ -422,7 +418,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.12),
+            color: Colors.grey.withValues(alpha: 0.12), //withOpacity(0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -511,7 +507,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                               height: 42,
                               child: DropdownButtonFormField<String>(
                                 dropdownColor: Colors.white,
-                                value: _goodsSignMap[id],
+                                initialValue: _goodsSignMap[id],
                                 decoration: InputDecoration(
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 10,
@@ -649,237 +645,239 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
       ),
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 24,
-              vertical: 16,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isEditMode
-                        ? 'Update customer details'
-                        : 'Add a new customer to the system',
-                    style: GoogleFonts.inter(
-                      fontSize: isMobile ? 16 : 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 24,
+                vertical: 16,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isEditMode
+                          ? 'Update customer details'
+                          : 'Add a new customer to the system',
+                      style: GoogleFonts.inter(
+                        fontSize: isMobile ? 16 : 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Name Field
-                  _buildTextField(
-                    label: 'Customer Name',
-                    controller: _nameController,
-                    icon: Icons.person,
-                    errorText: _nameError,
-                    onChanged: _updateNameError,
-                    keyboardType: TextInputType.name,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Mobile Field
-                  _buildTextField(
-                    label: 'Mobile',
-                    controller: _mobileController,
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
-                    errorText: _mobileError,
-                    onChanged: (value) {
-                      // Clean value (remove non-digits & leading zeros)
-                      final cleaned = value
-                          .replaceAll(RegExp(r'\D'), '')
-                          .replaceFirst(RegExp(r'^0+'), '');
-
-                      // Update error in real-time
-                      setState(() {
-                        if (cleaned.isEmpty) {
-                          _mobileError = 'Please enter mobile number';
-                        } else if (cleaned.length != 10) {
-                          _mobileError = 'Mobile must be exactly 10 digits';
-                        } else if (!RegExp(r'^[5-9]\d{9}$').hasMatch(cleaned)) {
-                          _mobileError = 'Must start with 5, 6, 7, 8 or 9';
-                        } else {
-                          _mobileError = null;
-                        }
-                      });
-                    },
-                    inputFormatters: [
-                      MobileNumberInputFormatter(),
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Email Field
-                  _buildTextField(
-                    label: 'Email',
-                    controller: _emailController,
-                    icon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    errorText: _emailError,
-                    onChanged: _onEmailChanged,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Address Field
-                  _buildTextField(
-                    label: 'Address',
-                    controller: _addressController,
-                    icon: Icons.location_on,
-                    isMultiLine: true,
-                    errorText: _addressError,
-                    onChanged: _updateAddressError,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Deposite opening balance
-                  _buildTextField(
-                    label: 'Deposit Opening Balance',
-                    controller: depositOpeningBalanceController,
-                    icon: Icons.currency_rupee,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                      FilteringTextInputFormatter.deny(RegExp(r'\.{2,}')),
-                    ],
-                    compulsary: false,
-                  ),
-                  const SizedBox(height: 16),
-                  //set reminder
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.access_alarm,
-                              color: AppColors.accentBlue,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Set Reminder",
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
+                    const SizedBox(height: 24),
+            
+                    // Name Field
+                    _buildTextField(
+                      label: 'Customer Name',
+                      controller: _nameController,
+                      icon: Icons.person,
+                      errorText: _nameError,
+                      onChanged: _updateNameError,
+                      keyboardType: TextInputType.name,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+            
+                    // Mobile Field
+                    _buildTextField(
+                      label: 'Mobile',
+                      controller: _mobileController,
+                      icon: Icons.phone,
+                      keyboardType: TextInputType.phone,
+                      errorText: _mobileError,
+                      onChanged: (value) {
+                        // Clean value (remove non-digits & leading zeros)
+                        final cleaned = value
+                            .replaceAll(RegExp(r'\D'), '')
+                            .replaceFirst(RegExp(r'^0+'), '');
+            
+                        // Update error in real-time
+                        setState(() {
+                          if (cleaned.isEmpty) {
+                            _mobileError = 'Please enter mobile number';
+                          } else if (cleaned.length != 10) {
+                            _mobileError = 'Mobile must be exactly 10 digits';
+                          } else if (!RegExp(r'^[5-9]\d{9}$').hasMatch(cleaned)) {
+                            _mobileError = 'Must start with 5, 6, 7, 8 or 9';
+                          } else {
+                            _mobileError = null;
+                          }
+                        });
+                      },
+                      inputFormatters: [
+                        MobileNumberInputFormatter(),
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+            
+                    // Email Field
+                    _buildTextField(
+                      label: 'Email',
+                      controller: _emailController,
+                      icon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      errorText: _emailError,
+                      onChanged: _onEmailChanged,
+                    ),
+                    const SizedBox(height: 16),
+            
+                    // Address Field
+                    _buildTextField(
+                      label: 'Address',
+                      controller: _addressController,
+                      icon: Icons.location_on,
+                      isMultiLine: true,
+                      errorText: _addressError,
+                      onChanged: _updateAddressError,
+                    ),
+                    const SizedBox(height: 16),
+            
+                    // Deposite opening balance
+                    _buildTextField(
+                      label: 'Deposit Opening Balance',
+                      controller: depositOpeningBalanceController,
+                      icon: Icons.currency_rupee,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                        FilteringTextInputFormatter.deny(RegExp(r'\.{2,}')),
+                      ],
+                      compulsary: false,
+                    ),
+                    const SizedBox(height: 16),
+                    //set reminder
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.access_alarm,
+                                color: AppColors.accentBlue,
                               ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        SizedBox(
-                          width: isMobile ? screenWidth * 0.4 : 200,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade400),
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.grey.shade50,
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                dropdownColor: Colors.white,
-                                value: setReminder,
-                                hint: const Text('Select Type'),
-                                isExpanded: true,
-                                icon: const Icon(
-                                  Icons.arrow_drop_down,
-                                  size: 20,
-                                ),
-                                style: const TextStyle(
+                              const SizedBox(width: 8),
+                              Text(
+                                "Set Reminder",
+                                style: GoogleFonts.inter(
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w500,
                                   color: Colors.black87,
                                 ),
-                                items: ['None', 'Daily', 'Weekly', 'Monthly']
-                                    .map(
-                                      (e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(e),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) =>
-                                    setState(() => setReminder = value),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: isMobile ? screenWidth * 0.4 : 200,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade400),
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey.shade50,
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  dropdownColor: Colors.white,
+                                  value: setReminder,
+                                  hint: const Text('Select Type'),
+                                  isExpanded: true,
+                                  icon: const Icon(
+                                    Icons.arrow_drop_down,
+                                    size: 20,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                  items: ['None', 'Daily', 'Weekly', 'Monthly']
+                                      .map(
+                                        (e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(e),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) =>
+                                      setState(() => setReminder = value),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            
+                    // Goods Selection Table
+                    _buildGoodsSelectionTable(),
+                    const SizedBox(height: 12),
+            
+                    // Submit Button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _resetForm();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              side: BorderSide(color: AppColors.accentBlue),
+                              backgroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: isMobile ? 14 : 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: Text(
+                              "Reset",
+                              style: GoogleFonts.inter(
+                                color: AppColors.accentBlue,
+                                fontSize: isMobile ? 16 : 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _submitCustomer,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromRGBO(
+                                0,
+                                140,
+                                192,
+                                1,
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                vertical: isMobile ? 14 : 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: Text(
+                              _isEditMode ? 'Update Customer' : 'Create Customer',
+                              style: GoogleFonts.inter(
+                                fontSize: isMobile ? 16 : 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-
-                  // Goods Selection Table
-                  _buildGoodsSelectionTable(),
-                  const SizedBox(height: 12),
-
-                  // Submit Button
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            _resetForm();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            side: BorderSide(color: AppColors.accentBlue),
-                            backgroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              vertical: isMobile ? 14 : 16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
-                          child: Text(
-                            "Reset",
-                            style: GoogleFonts.inter(
-                              color: AppColors.accentBlue,
-                              fontSize: isMobile ? 16 : 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submitCustomer,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromRGBO(
-                              0,
-                              140,
-                              192,
-                              1,
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              vertical: isMobile ? 14 : 16,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
-                          child: Text(
-                            _isEditMode ? 'Update Customer' : 'Create Customer',
-                            style: GoogleFonts.inter(
-                              fontSize: isMobile ? 16 : 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

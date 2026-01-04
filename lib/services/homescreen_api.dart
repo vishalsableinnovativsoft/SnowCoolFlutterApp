@@ -1,6 +1,7 @@
 // lib/services/homescreen_api.dart
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:snow_trading_cool/utils/api_config.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
@@ -76,11 +77,11 @@ class HomeScreenApi {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return DashboardSummary.fromJson(json);
       } else {
-        print('Dashboard API error: ${response.statusCode} ${response.body}');
+        debugPrint('Dashboard API error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Exception while fetching dashboard data: $e');
+      debugPrint('Exception while fetching dashboard data: $e');
       return null;
     }
   }

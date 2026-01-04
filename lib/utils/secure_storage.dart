@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:snow_trading_cool/screens/login_screen.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
 
 // secure_storage.dart
@@ -44,7 +43,7 @@ class SecureStorage {
     // if (permissions != null) TokenManager().setPermissionsFromJson(permissions);
     // Debug-only: log persisted values (token length only, not token itself)
     assert(() {
-      print(
+      debugPrint(
         'SecureStorage: persistLoginData -> id=$userId, role=$role, tokenLen=${token.length}',
       );
       return true;
@@ -105,7 +104,7 @@ class SecureStorage {
       permissions: permissions,
     );
 
-    print('SecureStorage: Auto-login successful → ID=$userId, Role=$role');
+    debugPrint('SecureStorage: Auto-login successful → ID=$userId, Role=$role');
     return true;
   }
 
@@ -114,7 +113,7 @@ class SecureStorage {
     await _prefs.clear();
     TokenManager()
         .logout(); // This triggers auto-logout timer cancel + clears memory
-    print('SecureStorage: User logged out & data cleared');
+    debugPrint('SecureStorage: User logged out & data cleared');
   }
 
   // Add inside SecureStorage class

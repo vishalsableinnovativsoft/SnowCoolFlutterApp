@@ -36,6 +36,8 @@
 
 // api_utils.dart
 
+import 'package:flutter/material.dart';
+
 import 'token_manager.dart';
 
 /// Centralized utility for common API-related operations
@@ -60,12 +62,11 @@ class ApiUtils {
     assert(() {
       final hasAuth = headers.containsKey('Authorization');
       final tokenLength = token?.length ?? 0;
-      print('ApiUtils: Headers → Auth=$hasAuth, TokenLength=$tokenLength');
+      debugPrint('ApiUtils: Headers → Auth=$hasAuth, TokenLength=$tokenLength');
       return true;
     }());
 
     return headers;
-  headers;
   }
 
   /// Check if user is currently authenticated (token exists + not expired)

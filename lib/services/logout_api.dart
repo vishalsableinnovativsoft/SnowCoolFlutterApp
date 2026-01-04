@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/api_config.dart';
 
@@ -45,8 +46,8 @@ class LogoutApi {
       headers['Authorization'] = 'Bearer $token';
     }
 
-    print('LogoutApi: POST $uri (attempt 1 - no body)');
-    print('LogoutApi: headers=$headers');
+    debugPrint('LogoutApi: POST $uri (attempt 1 - no body)');
+    debugPrint('LogoutApi: headers=$headers');
 
     try {
       // Try POST without body first (many logout endpoints prefer this)
@@ -54,8 +55,8 @@ class LogoutApi {
           .post(uri, headers: headers)
           .timeout(const Duration(seconds: 8));
 
-      print('LogoutApi: status=${resp.statusCode}');
-      print('LogoutApi: response=${resp.body}');
+      debugPrint('LogoutApi: status=${resp.statusCode}');
+      debugPrint('LogoutApi: response=${resp.body}');
 
       if (resp.statusCode == 200 || resp.statusCode == 204) {
         try {
@@ -71,7 +72,7 @@ class LogoutApi {
             );
           }
         } catch (e) {
-          print('LogoutApi: failed to decode JSON: $e');
+          debugPrint('LogoutApi: failed to decode JSON: $e');
           return LogoutResponse(
             success: true,
             message: 'Logged out successfully',
@@ -79,7 +80,7 @@ class LogoutApi {
         }
       } else if (resp.statusCode == 400) {
         // Handle 400 Bad Request - server might not expect JSON body or has different requirements
-        print(
+        debugPrint(
           'LogoutApi: 400 Bad Request - treating as successful logout for security',
         );
         return LogoutResponse(
@@ -107,13 +108,13 @@ class LogoutApi {
         }
       }
     } on TimeoutException catch (e) {
-      print('LogoutApi: timeout error: $e');
+      debugPrint('LogoutApi: timeout error: $e');
       return LogoutResponse(
         success: true, // Treat timeout as successful logout for security
         message: 'Logged out (connection timeout)',
       );
     } catch (e) {
-      print('LogoutApi: network error: $e');
+      debugPrint('LogoutApi: network error: $e');
       return LogoutResponse(
         success: true, // Treat network errors as successful logout for security
         message: 'Logged out (network error)',

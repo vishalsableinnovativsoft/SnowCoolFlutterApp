@@ -165,6 +165,19 @@ class _ChallanScreenState extends State<ChallanScreen> {
         if (driverNumber.isNotEmpty) driverNumber,
       ].join(' - ');
 
+      double liveBalance = 0.0;
+      try {
+        liveBalance =
+            await _customerApi.getCustomerPreviousBalance(
+              selectedCustomerId!,
+              context,
+            ) ??
+            0.0;
+      } catch (e) {
+        liveBalance = 0.0;
+      }
+     
+
       setState(() {
         selectedCustomerId = data['customerId'];
         _originalCustomerId = selectedCustomerId;
@@ -183,7 +196,8 @@ class _ChallanScreenState extends State<ChallanScreen> {
         // amountController.text = data['returnedAmount'].toString();
         deliveryDetailsController.text = data['deliveryDetails'] ?? '';
         depositeNarrationController.text = data['depositeNarration'] ?? '';
-        remaining = data['deposite'] ?? 0.0;
+        // remaining = data['deposite'] ?? 0.0;
+         remaining = liveBalance;
 
         log(data.toString());
 
@@ -548,200 +562,194 @@ class _ChallanScreenState extends State<ChallanScreen> {
         },
         child: Stack(
           children: [
-            Padding(
-              padding: padding,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildCustomerSearchField(isEditMode),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Challan Type",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color.fromRGBO(20, 20, 20, 1),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Color.fromRGBO(156, 156, 156, 1),
+            SafeArea(
+              child: Padding(
+                padding: padding,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildCustomerSearchField(isEditMode),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Challan Type",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromRGBO(20, 20, 20, 1),
                               ),
-                              borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.all(10),
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "$title Challan",
-                              style: TextStyle(fontSize: 16),
+                            const SizedBox(height: 6),
+                            Container(
+                              height: 50,
+                              width: MediaQuery.of(context).size.width,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Color.fromRGBO(156, 156, 156, 1),
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.all(10),
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "$title Challan",
+                                style: TextStyle(fontSize: 16),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: "Date",
-                            required: true,
-                            controller: dateController,
-                            enabled: !isEditMode,
-                            hint: "2025-11-29",
-                            prefixIcon: const Icon(Icons.calendar_month),
-                            maxlines: 1,
-                            onTap: () async {
-                              picked = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2005),
-                                lastDate: DateTime.now(),
-                                builder: (context, child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: ColorScheme.light(
-                                        primary: AppColors
-                                            .accentBlue, // Header background & selected day
-                                        onPrimary: Colors
-                                            .white, //  Text on header & selected day
-                                        surface:
-                                            Colors.white, //Calendar background
-                                        onSurface: Colors.black87, //Normal text
-                                      ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: AppColors
-                                              .accentBlue, // OK / Cancel buttons
-                                          textStyle: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: "Date",
+                              required: true,
+                              controller: dateController,
+                              enabled: !isEditMode,
+                              hint: "2025-11-29",
+                              prefixIcon: const Icon(Icons.calendar_month),
+                              maxlines: 1,
+                              onTap: () async {
+                                picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2005),
+                                  lastDate: DateTime.now(),
+                                  builder: (context, child) {
+                                    return Theme(
+                                      data: Theme.of(context).copyWith(
+                                        colorScheme: ColorScheme.light(
+                                          primary: AppColors
+                                              .accentBlue, // Header background & selected day
+                                          onPrimary: Colors
+                                              .white, //  Text on header & selected day
+                                          surface:
+                                              Colors.white, //Calendar background
+                                          onSurface: Colors.black87, //Normal text
                                         ),
+                                        textButtonTheme: TextButtonThemeData(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColors
+                                                .accentBlue, // OK / Cancel buttons
+                                            textStyle: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
                                       ),
-                                      dialogBackgroundColor: Colors.white,
-                                    ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                              if (picked != null) {
-                                dateController.text = picked!
-                                    .toLocal()
-                                    .toString()
-                                    .split(' ')[0];
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: 'Site Location',
-                            required: true,
-                            enabled: true,
-                            controller: locationController,
-                            hint: "Enter Site location",
-                            maxlines: 1,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: 'Vehicle Number',
-                            enabled: true,
-                            controller: vehicleNumberController,
-                            hint: "MH12AB1234",
-                            onChanged: _validateVehicleNumber,
-                            errorText: _vehicleNumberError,
-                            inputFormatters: [UpperCaseTextFormatter()],
-                            maxlines: 1,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: 'Transporter',
-                            enabled: true,
-                            controller: transporterController,
-                            hint: "Enter Transporter Details",
-                            maxlines: 1,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: 'Driver Details',
-                            enabled: true,
-                            controller: vehicleDriverDetailsController,
-                            hint: "Name - 9876543210",
-                            onChanged: _validateDriverDetails,
-                            errorText: _driverDetailsError,
-                            maxlines: 1,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: "Delivery Details",
-                            controller: deliveryDetailsController,
-                            hint: "Gate/Floor",
-                            maxlines: 3,
-                            enabled: true,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: "PO No.",
-                            controller: purchaseOrderNoController,
-                            hint: "Purchase order number (if any)",
-                            enabled: true,
-                            maxlines: 1,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildDepositeAmountField(
-                            onChanged: (value) {},
-                            controller: amountController,
-                            // controller: isReceivedChallan
-                            //     ? returnedAmountController
-                            //     : depositeController,
-                            hint: "0.00",
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
+                                      child: child!,
+                                    );
+                                  },
+                                );
+                                if (picked != null) {
+                                  dateController.text = picked!
+                                      .toLocal()
+                                      .toString()
+                                      .split(' ')[0];
+                                }
+                              },
                             ),
-                            enabled: true,
-                            maxlines: 1,
-                            // errorText:
-                            //     isReceivedChallan && !_isReturnedAmountValid
-                            //     ? _returnedAmountError
-                            //     : null,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9.]'),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: 'Site Location',
+                              required: true,
+                              enabled: true,
+                              controller: locationController,
+                              hint: "Enter Site location",
+                              maxlines: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: 'Vehicle Number',
+                              enabled: true,
+                              controller: vehicleNumberController,
+                              hint: "MH12AB1234",
+                              onChanged: _validateVehicleNumber,
+                              errorText: _vehicleNumberError,
+                              inputFormatters: [UpperCaseTextFormatter()],
+                              maxlines: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: 'Transporter',
+                              enabled: true,
+                              controller: transporterController,
+                              hint: "Enter Transporter Details",
+                              maxlines: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: 'Driver Details',
+                              enabled: true,
+                              controller: vehicleDriverDetailsController,
+                              hint: "Name - 9876543210",
+                              onChanged: _validateDriverDetails,
+                              errorText: _driverDetailsError,
+                              maxlines: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: "Delivery Details",
+                              controller: deliveryDetailsController,
+                              hint: "Gate/Floor",
+                              maxlines: 3,
+                              enabled: true,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: "PO No.",
+                              controller: purchaseOrderNoController,
+                              hint: "Purchase order number (if any)",
+                              enabled: true,
+                              maxlines: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildDepositeAmountField(
+                              onChanged: (value) {},
+                              controller: amountController,
+                              // controller: isReceivedChallan
+                              //     ? returnedAmountController
+                              //     : depositeController,
+                              hint: "0.00",
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
                               ),
-                              TextInputFormatter.withFunction((old, newVal) {
-                                if (newVal.text.isEmpty) return newVal;
-                                final parts = newVal.text.split('.');
-                                if (parts.length > 2 ||
-                                    (parts.length == 2 && parts[1].length > 2))
-                                  return old;
-                                return newVal;
-                              }),
-                            ],
-                          ),
-                          // Row(
-                          //   children: [
-                          //     Spacer(),
-                          //     Text(
-                          //       "Remaining Amount: ${remaining?.toStringAsFixed(2) ?? '0.00'}",
-                          //     ),
-                          //   ],
-                          // ),
-                          const SizedBox(height: 12),
-                          _buildLabeledField(
-                            label: "Deposit Narration",
-                            enabled: true,
-                            controller: depositeNarrationController,
-                            maxlines: 3,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildProductTable(),
-                        ],
+                              enabled: true,
+                              maxlines: 1,
+                              // errorText:
+                              //     isReceivedChallan && !_isReturnedAmountValid
+                              //     ? _returnedAmountError
+                              //     : null,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9.]'),
+                                ),
+                                TextInputFormatter.withFunction((old, newVal) {
+                                  if (newVal.text.isEmpty) return newVal;
+                                  final parts = newVal.text.split('.');
+                                  if (parts.length > 2 ||
+                                      (parts.length == 2 && parts[1].length > 2)) {
+                                    return old;
+                                  }
+                                  return newVal;
+                                }),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildLabeledField(
+                              label: "Deposit Narration",
+                              enabled: true,
+                              controller: depositeNarrationController,
+                              maxlines: 3,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildProductTable(),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  _buildActionButtons(isEditMode),
-                ],
+                    _buildActionButtons(isEditMode),
+                  ],
+                ),
               ),
             ),
             if (_loading || _goodsLoading || _saving) customLoader(),
@@ -945,7 +953,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
     String? errorText,
     required bool enabled,
     Future<Null> Function()? onTap,
-    Icon? prefixIcon,
+    // Icon? prefixIcon,
     int? maxlines,
   }) {
     return Column(
@@ -966,7 +974,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
               height: 56,
               width: 130,
               child: DropdownButtonFormField<String>(
-                value: _amounttype,
+                initialValue: _amounttype,
                 dropdownColor: Colors.white,
                 decoration: InputDecoration(
                   isDense: true,
@@ -1174,8 +1182,8 @@ class _ChallanScreenState extends State<ChallanScreen> {
     const double tabletMax = 1024; // tablets / small laptops
 
     // Determine device type / size category
-    bool isMobile = screenWidth < mobileMax;
-    bool isTablet = screenWidth >= mobileMax && screenWidth < tabletMax;
+    // bool isMobile = screenWidth < mobileMax;
+    // bool isTablet = screenWidth >= mobileMax && screenWidth < tabletMax;
 
     Map<int, TableColumnWidth> columnWidths;
 
@@ -1264,7 +1272,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
               border: Border.all(color: Colors.grey.shade300),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.12),
+                  color: Colors.grey.withValues(alpha: 0.12),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1959,88 +1967,31 @@ class _ChallanScreenState extends State<ChallanScreen> {
     Overlay.of(context).insert(_overlayEntry!);
   }
 
-  // void selectCustomer(CustomerDTO customer) async {
-  //   setState(() {
-  //     selectedCustomerId = customer.id;
-  //     customerNameController.text = customer.name;
-  //     _originalCustomerId = customer.id;
-  //     remaining = customer.deposite ?? 0;
-  //   });
-
-  //   _removeOverlay();
-
-  //   if (isReceivedChallan) {
-  //     setState(() => _loading = true);
-
-  //     final inventoryItems = await _api.getCustomerPendingInventoryItems(
-  //       customer.id,
-  //       context,
-  //     );
-
-  //     if (!mounted) return;
-  //     setState(() => _loading = false);
-
-  //     if (inventoryItems == null) {
-  //       showErrorToast(context, "Failed to load customer inventory");
-  //       return;
-  //     }
-
-  //     if (inventoryItems.isEmpty) {
-  //       setState(() {
-  //         _productEntries.clear();
-  //         _showProductTable = false;
-  //       });
-  //       return;
-  //     }
-
-  //     // Clear previous entries
-  //     _productEntries.clear();
-
-  //     for (var item in inventoryItems) {
-  //       final String name = item['name'] ?? '';
-  //       final GoodsDTO? goodsItem = goods.firstWhereOrNull(
-  //         (g) => g.name == name,
-  //       );
-
-  //       if (goodsItem == null) {
-  //         debugPrint("Warning: Goods not found in local list: $name");
-  //         continue;
-  //       }
-
-  //       // Handle srNo (can be null or empty list)
-  //       String srNoStr = '';
-  //       final srNoRaw = item['srNo'];
-  //       if (srNoRaw is List && srNoRaw.isNotEmpty) {
-  //         srNoStr = srNoRaw.map((e) => e.toString().trim()).join('/');
-  //       }
-
-  //       _productEntries.add({
-  //         'goods': goodsItem,
-  //         'type': (item['type']?.toString() ?? '').trim(),
-  //         'deliveredQty': isReceivedChallan
-  //             ? item['deliveredQty'].toString()
-  //             : '',
-  //         'receivedQty': '', // User fills this
-  //         'srNo': srNoStr,
-  //         'originalItemId': item['id'], // Critical for backend update
-  //       });
-  //     }
-
-  //     setState(() {
-  //       _showProductTable = true;
-  //     });
-  //   }
-  // }
-
   void selectCustomer(CustomerDTO customer) async {
     setState(() {
       selectedCustomerId = customer.id;
       customerNameController.text = customer.name;
       _originalCustomerId = customer.id;
-      remaining = customer.deposite ?? 0;
+      // remaining = customer.deposite ?? 0;
     });
 
     _removeOverlay();
+
+    double previousBalance = 0.0;
+    try {
+      setState(() => _loading = true);
+      previousBalance =
+          await _customerApi.getCustomerPreviousBalance(customer.id, context) ??
+          0.0;
+    } catch (e) {
+      previousBalance = 0.0;
+      debugPrint("Failed to load previous balance: $e");
+    }
+
+    setState(() {
+      remaining = previousBalance;
+      _loading = false;
+    });
 
     if (isReceivedChallan) {
       setState(() => _loading = true);

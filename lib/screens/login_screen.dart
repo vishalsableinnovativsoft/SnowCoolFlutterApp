@@ -202,7 +202,7 @@ Future<void> _doLogin() async {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryBlue.withOpacity(0.2),
+                      AppColors.primaryBlue.withValues(alpha: 0.2),
                       Colors.transparent,
                     ],
                   ),
@@ -282,11 +282,11 @@ Future<void> _doLogin() async {
         height: 140,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.95),
+          color: Colors.white.withValues(alpha: 0.95),
           border: Border.all(color: Colors.white, width: 4),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -502,7 +502,7 @@ class _LoginFormWrapper extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

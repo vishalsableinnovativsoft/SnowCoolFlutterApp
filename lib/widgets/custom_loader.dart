@@ -13,11 +13,11 @@ Widget customLoader() {
                 child: Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
+                    color: Colors.white.withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),

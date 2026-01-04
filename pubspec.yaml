@@ -28,6 +28,8 @@ dependencies:
   shared_preferences: ^2.5.3
   animated_text_kit: ^4.3.0
   open_filex: ^4.7.0
+  collection: ^1.19.1
+  intl: ^0.20.2
 
 flutter_launcher_icons:
   android: true

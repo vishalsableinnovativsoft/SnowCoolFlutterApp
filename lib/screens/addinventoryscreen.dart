@@ -164,258 +164,260 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
       drawer: ShowSideMenu(),
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Items Name",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromRGBO(0, 140, 192, 1),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _productNameCtrl,
-                  cursorColor: AppColors.accentBlue,
-                  onChanged: _filterGoods,
-                  decoration: InputDecoration(
-                    hintText: "Enter or select product name",
-                    hintStyle: const TextStyle(fontSize: 14, color: Colors.black54),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Color.fromRGBO(147, 148, 150, 1),
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.black87,
-                        width: 2.0,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_selectedProduct != null && !_isManuallyEdited)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: Icon(Icons.check_circle, color: Colors.green),
-                          ),
-                        if (_productNameCtrl.text.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () {
-                              _productNameCtrl.clear();
-                              _filterGoods('');
-                              setState(() => _isManuallyEdited = false);
-                            },
-                          ),
-                      ],
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Items Name",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color.fromRGBO(0, 140, 192, 1),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                const Text(
-                  "Or select from below:",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                if (_goodsError.isNotEmpty)
-                  Center(
-                    child: Text(
-                      _goodsError,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: const Color.fromRGBO(0, 140, 192, 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child:  Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text("Product Name", style: TextStyle(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _productNameCtrl,
+                    cursorColor: AppColors.accentBlue,
+                    onChanged: _filterGoods,
+                    decoration: InputDecoration(
+                      hintText: "Enter or select product name",
+                      hintStyle: const TextStyle(fontSize: 14, color: Colors.black54),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Color.fromRGBO(147, 148, 150, 1),
+                          width: 1.5,
                         ),
-                        if(isAdmin)
-                        SizedBox(
-                          width: 100,
-                          child: Text("Action", style: TextStyle(fontWeight: FontWeight.w600)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Colors.black87,
+                          width: 2.0,
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_selectedProduct != null && !_isManuallyEdited)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: Icon(Icons.check_circle, color: Colors.green),
+                            ),
+                          if (_productNameCtrl.text.isNotEmpty)
+                            IconButton(
+                              icon: const Icon(Icons.clear, size: 20),
+                              onPressed: () {
+                                _productNameCtrl.clear();
+                                _filterGoods('');
+                                setState(() => _isManuallyEdited = false);
+                              },
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-
-                const SizedBox(height: 4),
-
-                if (!_goodsLoading && _goodsError.isEmpty)
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _filteredGoods.length,
-                      itemBuilder: (context, index) {
-                        final product = _filteredGoods[index];
-                        final isSelected = _selectedProduct?.id == product.id;
-
-                        return Container(
-                          margin: const EdgeInsets.symmetric(vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color.fromRGBO(0, 140, 192, 0.15)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+            
+                  const Text(
+                    "Or select from below:",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+            
+                  if (_goodsError.isNotEmpty)
+                    Center(
+                      child: Text(
+                        _goodsError,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(0, 140, 192, 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text("Product Name", style: TextStyle(fontWeight: FontWeight.w600)),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                  child: Text(
-                                    product.name,
-                                    style: TextStyle(
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                      color: isSelected
-                                          ? const Color.fromRGBO(0, 140, 192, 1)
-                                          : Colors.black87,
+                          if(isAdmin)
+                          SizedBox(
+                            width: 100,
+                            child: Text("Action", style: TextStyle(fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ),
+            
+                  const SizedBox(height: 4),
+            
+                  if (!_goodsLoading && _goodsError.isEmpty)
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _filteredGoods.length,
+                        itemBuilder: (context, index) {
+                          final product = _filteredGoods[index];
+                          final isSelected = _selectedProduct?.id == product.id;
+            
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color.fromRGBO(0, 140, 192, 0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                    child: Text(
+                                      product.name,
+                                      style: TextStyle(
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                        color: isSelected
+                                            ? const Color.fromRGBO(0, 140, 192, 1)
+                                            : Colors.black87,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              if(isAdmin)
-                              SizedBox(
-                                width: 130,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    IconButton(
-                                      icon: Image.asset("assets/images/edit.png", width: 30, height: 30),
-                                      tooltip: 'Edit',
-                                      onPressed: () {
-                                        setState(() {
-                                          _inEditMode = true;
-                                          _editingId = product.id;
-                                          _selectedProduct = product;
-                                          _productNameCtrl.text = product.name;
-                                          _isManuallyEdited = false;
-                                        });
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(CupertinoIcons.bin_xmark_fill, color: Colors.red),
-                                      tooltip: 'Delete',
-                                      onPressed: () async {
-                                        final ok = await showDialog<bool>(
-                                          context: context,
-                                          builder: (ctx) => AlertDialog(
-                                            title: Text('Delete Product'),
-                                            content: Text('Delete "${product.name}"?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(ctx, false),
-                                                child: Text('Cancel'),
-                                              ),
-                                              ElevatedButton(
-                                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                                onPressed: () => Navigator.pop(ctx, true),
-                                                child: Text('Delete'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-
-                                        if (ok == true && product.id != null) {
-                                          try {
-                                            final removed = await _api.deleteGood(product.id!);
-                                            if (removed) {
-                                              showSuccessToast(context, 'Product deleted');
-                                              await _loadGoods();
+                                if(isAdmin)
+                                SizedBox(
+                                  width: 130,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: Image.asset("assets/images/edit.png", width: 30, height: 30),
+                                        tooltip: 'Edit',
+                                        onPressed: () {
+                                          setState(() {
+                                            _inEditMode = true;
+                                            _editingId = product.id;
+                                            _selectedProduct = product;
+                                            _productNameCtrl.text = product.name;
+                                            _isManuallyEdited = false;
+                                          });
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(CupertinoIcons.bin_xmark_fill, color: Colors.red),
+                                        tooltip: 'Delete',
+                                        onPressed: () async {
+                                          final ok = await showDialog<bool>(
+                                            context: context,
+                                            builder: (ctx) => AlertDialog(
+                                              title: Text('Delete Product'),
+                                              content: Text('Delete "${product.name}"?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(ctx, false),
+                                                  child: Text('Cancel'),
+                                                ),
+                                                ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                                  onPressed: () => Navigator.pop(ctx, true),
+                                                  child: Text('Delete'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+            
+                                          if (ok == true && product.id != null) {
+                                            try {
+                                              final removed = await _api.deleteGood(product.id!);
+                                              if (removed) {
+                                                showSuccessToast(context, 'Product deleted');
+                                                await _loadGoods();
+                                              }
+                                            } catch (e) {
+                                              showErrorToast(context, e.toString());
                                             }
-                                          } catch (e) {
-                                            showErrorToast(context, e.toString());
                                           }
-                                        }
-                                      },
-                                    ),
-                                  ],
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            
+                  const SizedBox(height: 20),
+            
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _resetForm,
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Color.fromARGB(255, 9, 115, 156), width: 2),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Reset",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color.fromARGB(255, 9, 115, 156),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _saveProductName,
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              color: (_isManuallyEdited && _selectedProduct != null && !_inEditMode)
+                                  ? Colors.grey
+                                  : const Color.fromRGBO(0, 140, 192, 1),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "Save",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-
-                const SizedBox(height: 20),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _resetForm,
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Color.fromARGB(255, 9, 115, 156), width: 2),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Reset",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 9, 115, 156),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _saveProductName,
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            color: (_isManuallyEdited && _selectedProduct != null && !_inEditMode)
-                                ? Colors.grey
-                                : const Color.fromRGBO(0, 140, 192, 1),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "Save",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           if (_goodsLoading) customLoader(),

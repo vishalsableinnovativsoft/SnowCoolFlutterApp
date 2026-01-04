@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/api_config.dart';
 import '../utils/api_utils.dart';
@@ -235,7 +236,7 @@ class ProfileApi {
           .get(url, headers: headers)
           .timeout(const Duration(seconds: 10));
 
-      print(resp);
+      debugPrint(resp.toString());
 
       log('ProfileApi get: status=${resp.statusCode}');
       log('ProfileApi get: response=${resp.body}');

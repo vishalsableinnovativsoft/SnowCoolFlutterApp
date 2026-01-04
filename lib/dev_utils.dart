@@ -1,4 +1,5 @@
 
+import 'package:flutter/material.dart';
 import 'package:snow_trading_cool/services/user_api.dart';
 
 class DevUtils {
@@ -19,12 +20,12 @@ class DevUtils {
         canManagePassbook: true,
       );
       if (response.success) {
-        print('Demo admin created successfully');
+        debugPrint('Demo admin created successfully');
       } else {
-        print('Failed to create demo admin: ${response.message}');
+        debugPrint('Failed to create demo admin: ${response.message}');
       }
     } catch (e) {
-      print('Error creating demo admin: $e');
+      debugPrint('Error creating demo admin: $e');
     }
   }
 }

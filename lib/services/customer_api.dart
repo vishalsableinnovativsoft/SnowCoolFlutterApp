@@ -612,4 +612,38 @@ class CustomerApi {
       debugPrint("downloadAndShowPdf failed: $e\n$s");
     }
   }
+
+  // GET /getPreviousBalance/{customerId}
+  Future<double?> getCustomerPreviousBalance(
+    int customerId,
+    BuildContext context,
+  ) async {
+    final url = Uri.parse('${_normalize()}/api/v1/challans/getPreviousBalance/$customerId');
+    final headers = _getHeaders();
+
+    try {
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final String body = response.body.trim();
+        final double? balance = double.tryParse(body);
+        return balance ?? 0.0;
+      } else {
+        debugPrint(
+            "Previous balance API failed: ${response.statusCode} ${response.body}");
+        return 0.0;
+      }
+    } on TimeoutException {
+      debugPrint("getCustomerPreviousBalance timeout for customer $customerId");
+      return 0.0;
+    } on SocketException {
+      debugPrint("No internet for previous balance API");
+      return 0.0;
+    } catch (e) {
+      debugPrint("Unexpected error in getCustomerPreviousBalance: $e");
+      return 0.0;
+    }
+  }
 }

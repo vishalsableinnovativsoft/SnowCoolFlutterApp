@@ -49,7 +49,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
   void _loadUserRole() {
     final savedRole = TokenManager().getRole();
     _userRole = (savedRole?.toUpperCase() == 'ADMIN') ? 'ADMIN' : 'Employee';
-    print('User Role Loaded: $_userRole');
+    debugPrint('User Role Loaded: $_userRole');
     setState(() {});
   }
 
@@ -58,8 +58,8 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     final panelWidth = isMobile
-        ? screenWidth * 0.7
-        : (screenWidth * 0.45).clamp(260.0, screenWidth);
+        ? screenWidth * 0.75
+        : (screenWidth * 0.47).clamp(260.0, screenWidth);
 
         log("can Manage Customer:   ${canManageSetting.toString()}");
         log("can Manage Passbook:   ${canManagePassbook.toString()}");
@@ -108,7 +108,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -523,14 +523,14 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
       // Call the logout API
       final logoutResponse = await _logoutApi.logout(token);
 
-      print(
+      debugPrint(
         'Logout API Response: ${logoutResponse.success} - ${logoutResponse.message}',
       );
 
       // Even if API fails (timeout, network issue), we proceed with local logout for security
       // (which your LogoutApi already handles gracefully by returning success=true in such cases)
     } catch (e) {
-      print('Exception during logout API call: $e');
+      debugPrint('Exception during logout API call: $e');
       // No need to block logout - security first
     }
 

@@ -15,7 +15,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This runs once at app start — checks saved login + token expiry
   Future<bool> _checkLoginAndTokenValidity() async {

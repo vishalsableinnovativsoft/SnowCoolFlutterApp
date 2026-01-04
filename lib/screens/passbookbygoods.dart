@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:snow_trading_cool/screens/home_screen.dart';
-import 'package:snow_trading_cool/services/goods_api.dart';
 import 'package:snow_trading_cool/services/passbook_api.dart';
 import 'package:snow_trading_cool/utils/constants.dart';
-import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/widgets/custom_loader.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import 'package:snow_trading_cool/widgets/drawer.dart';
@@ -1140,11 +1138,11 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
 
       final result = await _passbookApi.searchUnified(
         context: context,
-        itemName: widget.itemName?.trim().isNotEmpty == true
-            ? widget.itemName!.trim()
+        itemName: widget.itemName.trim().isNotEmpty == true
+            ? widget.itemName.trim()
             : null,
-        name: widget.customerName?.trim().isNotEmpty == true
-            ? widget.customerName!.trim()
+        name: widget.customerName.trim().isNotEmpty == true
+            ? widget.customerName.trim()
             : null,
 
         srNo: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
@@ -1387,404 +1385,434 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
               ),
             ),
             // if (isAdmin)
-              IconButton(
-                onPressed: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                ),
-                icon: Icon(Icons.home),
+            IconButton(
+              onPressed: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => HomeScreen()),
               ),
+              icon: Icon(Icons.home),
+            ),
           ],
         ),
       ),
       drawer: ShowSideMenu(),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final bool isTablet = constraints.maxWidth > 600;
-                    return Column(
-                      children: [
-                        Row(
-                          children: [
-                            _buildTotalRecordsBadge(),
-
-                            const Spacer(),
-                            Row(
-                              mainAxisSize: MainAxisSize
-                                  .min, // Prevents unnecessary stretching
-                              children: [
-                                _buildExportDropdown(),
-
-                                const SizedBox(width: 5),
-
-                                Stack(
-                                  children: [
-                                    SizedBox(
-                                      height: 56,
-                                      width: 54,
-                                      child: ElevatedButton(
-                                        onPressed: () =>
-                                            _showFiltersBottomSheet(),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.accentBlue,
-                                          padding: EdgeInsets.zero,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.tune_rounded,
-                                          color: Colors.white,
-                                          size: 28,
-                                        ),
-                                      ),
-                                    ),
-                                    if (_hasActiveFilters())
-                                      Positioned(
-                                        right: 6,
-                                        top: 6,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Text(
-                                            "!",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      '${widget.customerName} - ${widget.itemName}',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        // color: Colors.white,
-                        color: AppColors.accentBlue.withOpacity(0.7),
-                      ),
-                    ),
-                    Spacer(),
-                    IconButton(
-                      onPressed: () => _showShareOptions(
-                        context,
-                        widget.customerName,
-                        widget.itemName,
-                        widget.customerId,
-                      ),
-                      icon: Icon(Icons.share, color: AppColors.accentBlue),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Main Table
-              Expanded(
-                child: _paginatedEntries.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.inventory_2_outlined,
-                              size: 60,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              customerId != null
-                                  ? "No passbook entries found for this customer"
-                                  : "No passbook entries found",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isTablet = constraints.maxWidth > 600;
+                      return Column(
                         children: [
-                          // Left: Challan Numbers
-                          SizedBox(
-                            width: challanNoWidth,
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: 56,
-                                  color: AppColors.accentBlue,
-                                  child: const Center(
-                                    child: Text(
-                                      'Challan No.',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: ListView.builder(
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemCount: _paginatedEntries.length,
-                                    itemBuilder: (_, i) {
-                                      final challanNo =
-                                          _paginatedEntries[i]['challanNumber'] ??
-                                          'N/A';
+                          Row(
+                            children: [
+                              _buildTotalRecordsBadge(),
 
-                                      return Container(
-                                        height: 63,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        alignment: Alignment.centerLeft,
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color: Colors.grey.shade200,
+                              const Spacer(),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildExportDropdown(),
+
+                                  const SizedBox(width: 5),
+
+                                  Stack(
+                                    children: [
+                                      SizedBox(
+                                        height: 56,
+                                        width: 54,
+                                        child: ElevatedButton(
+                                          onPressed: () =>
+                                              _showFiltersBottomSheet(),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                AppColors.accentBlue,
+                                            padding: EdgeInsets.zero,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          challanNo,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 14,
+                                          child: const Icon(
+                                            Icons.tune_rounded,
+                                            color: Colors.white,
+                                            size: 28,
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Right: Data Columns
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const AlwaysScrollableScrollPhysics(),
-
-                              child: SizedBox(
-                                width:
-                                    dateWidth +
-                                    srNoWidth +
-                                    poNoWidth +
-                                    siteLocationWidth +
-                                    openingBalanceWidth +
-                                    deliveredQtyWidth +
-                                    receivedQtyWidth +
-                                    balanceWidth +
-                                    actionsColWidth,
-                                child: Column(
-                                  children: [
-                                    // Header
-                                    Container(
-                                      height: 56,
-                                      color: AppColors.accentBlue,
-                                      child: Row(
-                                        children: [
-                                          _headerCell('Date', dateWidth),
-                                          _headerCell('SR No.', srNoWidth),
-                                          _headerCell('PO No.', poNoWidth),
-                                          _headerCell(
-                                            'Site Location',
-                                            siteLocationWidth,
-                                          ),
-                                          _headerCell(
-                                            'Opening Bal',
-                                            openingBalanceWidth,
-                                          ),
-                                          _headerCell(
-                                            'Deliv Qty',
-                                            deliveredQtyWidth,
-                                          ),
-                                          _headerCell(
-                                            'Rece Qty',
-                                            receivedQtyWidth,
-                                          ),
-                                          _headerCell('Balance', balanceWidth),
-                                          _headerCell(
-                                            'Action',
-                                            actionsColWidth,
-                                          ),
-                                        ],
                                       ),
-                                    ),
-
-                                    // Rows
-                                    Expanded(
-                                      child: ListView.builder(
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        shrinkWrap: true,
-                                        itemCount: _paginatedEntries.length,
-                                        itemBuilder: (_, i) {
-                                          final e = _paginatedEntries[i];
-
-                                          return Container(
-                                            height: 65,
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                bottom: BorderSide(
-                                                  color: Colors.grey.shade200,
-                                                ),
+                                      if (_hasActiveFilters())
+                                        Positioned(
+                                          right: 6,
+                                          top: 6,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Text(
+                                              "!",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                _safeDateCell(
-                                                  e['date'] as String?,
-                                                  dateWidth,
-                                                ),
-                                                buildSrNoCell(
-                                                  srNoText:
-                                                      e['srNo']?.toString() ??
-                                                      '',
-                                                  productSrDetails:
-                                                      e['product_sr_details']
-                                                          as List<
-                                                            Map<String, dynamic>
-                                                          >?,
-                                                  context: context,
-                                                  srNoWidth: srNoWidth,
-                                                ),
-                                                _dataCell(
-                                                  e['purchaseOrderNo'] ?? '-',
-                                                  poNoWidth,
-                                                ),
-                                                _dataCell(
-                                                  e['siteLocation'] ?? '-',
-                                                  siteLocationWidth,
-                                                ),
-                                                _dataCell(
-                                                  e['openingBalance']
-                                                      .toString(),
-                                                  openingBalanceWidth,
-                                                ),
-                                                _dataCell(
-                                                  e['delivered'].toString(),
-                                                  deliveredQtyWidth,
-                                                  color: Colors.red,
-                                                ),
-                                                _dataCell(
-                                                  e['received'].toString(),
-                                                  receivedQtyWidth,
-                                                  color: Colors.green,
-                                                ),
-                                                _dataCell(
-                                                  e['closingBalance']
-                                                      .toString(),
-                                                  balanceWidth,
-                                                  color:
-                                                      e['closingBalance'] >= 0
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                                  bold: true,
-                                                ),
-                                                SizedBox(
-                                                  width: actionsColWidth,
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      IconButton(
-                                                        onPressed: () {
-                                                          PassbookApi()
-                                                              .showSingleChallanPassbookPdf(
-                                                                context:
-                                                                    context,
-                                                                challanNumber:
-                                                                    e['challanNumber'],
-                                                              );
-                                                        },
-                                                        icon: Image.asset(
-                                                          "assets/images/passbook.png",
-                                                          width: 26,
-                                                        ),
-                                                        tooltip: 'View Challan',
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              widget.customerName,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.accentBlue.withOpacity(0.9),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.itemName,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.accentBlue.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _showShareOptions(
+                          context,
+                          widget.customerName,
+                          widget.itemName,
+                          widget.customerId,
+                        ),
+                        icon: const Icon(Icons.share),
+                        color: AppColors.accentBlue,
+                        tooltip: 'Share',
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Main Table
+                Expanded(
+                  child: _paginatedEntries.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.inventory_2_outlined,
+                                size: 60,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                customerId != null
+                                    ? "No passbook entries found for this customer"
+                                    : "No passbook entries found",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left: Challan Numbers
+                            SizedBox(
+                              width: challanNoWidth,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: 56,
+                                    color: AppColors.accentBlue,
+                                    child: const Center(
+                                      child: Text(
+                                        'Challan No.',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      itemCount: _paginatedEntries.length,
+                                      itemBuilder: (_, i) {
+                                        final challanNo =
+                                            _paginatedEntries[i]['challanNumber'] ??
+                                            'N/A';
+
+                                        return Container(
+                                          height: 63,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          alignment: Alignment.centerLeft,
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: Colors.grey.shade200,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            challanNo,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Right: Data Columns
+                            Expanded(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const AlwaysScrollableScrollPhysics(),
+
+                                child: SizedBox(
+                                  width:
+                                      dateWidth +
+                                      srNoWidth +
+                                      poNoWidth +
+                                      siteLocationWidth +
+                                      openingBalanceWidth +
+                                      deliveredQtyWidth +
+                                      receivedQtyWidth +
+                                      balanceWidth +
+                                      actionsColWidth,
+                                  child: Column(
+                                    children: [
+                                      // Header
+                                      Container(
+                                        height: 56,
+                                        color: AppColors.accentBlue,
+                                        child: Row(
+                                          children: [
+                                            _headerCell('Date', dateWidth),
+                                            _headerCell('SR No.', srNoWidth),
+                                            _headerCell('PO No.', poNoWidth),
+                                            _headerCell(
+                                              'Site Location',
+                                              siteLocationWidth,
+                                            ),
+                                            _headerCell(
+                                              'Opening Bal',
+                                              openingBalanceWidth,
+                                            ),
+                                            _headerCell(
+                                              'Deliv Qty',
+                                              deliveredQtyWidth,
+                                            ),
+                                            _headerCell(
+                                              'Rece Qty',
+                                              receivedQtyWidth,
+                                            ),
+                                            _headerCell(
+                                              'Balance',
+                                              balanceWidth,
+                                            ),
+                                            _headerCell(
+                                              'Action',
+                                              actionsColWidth,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Rows
+                                      Expanded(
+                                        child: ListView.builder(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount: _paginatedEntries.length,
+                                          itemBuilder: (_, i) {
+                                            final e = _paginatedEntries[i];
+
+                                            return Container(
+                                              height: 65,
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Colors.grey.shade200,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  _safeDateCell(
+                                                    e['date'] as String?,
+                                                    dateWidth,
+                                                  ),
+                                                  buildSrNoCell(
+                                                    srNoText:
+                                                        e['srNo']?.toString() ??
+                                                        '',
+                                                    productSrDetails:
+                                                        e['product_sr_details']
+                                                            as List<
+                                                              Map<
+                                                                String,
+                                                                dynamic
+                                                              >
+                                                            >?,
+                                                    context: context,
+                                                    srNoWidth: srNoWidth,
+                                                  ),
+                                                  _dataCell(
+                                                    e['purchaseOrderNo'] ?? '-',
+                                                    poNoWidth,
+                                                  ),
+                                                  _dataCell(
+                                                    e['siteLocation'] ?? '-',
+                                                    siteLocationWidth,
+                                                  ),
+                                                  _dataCell(
+                                                    e['openingBalance']
+                                                        .toString(),
+                                                    openingBalanceWidth,
+                                                  ),
+                                                  _dataCell(
+                                                    e['delivered'].toString(),
+                                                    deliveredQtyWidth,
+                                                    color: Colors.red,
+                                                  ),
+                                                  _dataCell(
+                                                    e['received'].toString(),
+                                                    receivedQtyWidth,
+                                                    color: Colors.green,
+                                                  ),
+                                                  _dataCell(
+                                                    e['closingBalance']
+                                                        .toString(),
+                                                    balanceWidth,
+                                                    color:
+                                                        e['closingBalance'] >= 0
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                    bold: true,
+                                                  ),
+                                                  SizedBox(
+                                                    width: actionsColWidth,
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        IconButton(
+                                                          onPressed: () {
+                                                            PassbookApi()
+                                                                .showSingleChallanPassbookPdf(
+                                                                  context:
+                                                                      context,
+                                                                  challanNumber:
+                                                                      e['challanNumber'],
+                                                                );
+                                                          },
+                                                          icon: Image.asset(
+                                                            "assets/images/passbook.png",
+                                                            width: 26,
+                                                          ),
+                                                          tooltip:
+                                                              'View Challan',
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-              ),
-
-              Container(
-                color: const Color(0xFFB3E0F2),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, size: 18),
-                      onPressed: _currentPage > 0
-                          ? () {
-                              _loadPassbookByGoods(page: _currentPage - 1);
-                            }
-                          : null,
-                    ),
-                    Text(
-                      'Page ${_currentPage + 1} of $_totalPages',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, size: 18),
-                      onPressed: _currentPage < _totalPages - 1
-                          ? () {
-                              _loadPassbookByGoods(page: _currentPage + 1);
-                            }
-                          : null,
-                    ),
-                  ],
+                          ],
+                        ),
                 ),
-              ),
-            ],
+
+                Container(
+                  color: const Color(0xFFB3E0F2),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 18),
+                        onPressed: _currentPage > 0
+                            ? () {
+                                _loadPassbookByGoods(page: _currentPage - 1);
+                              }
+                            : null,
+                      ),
+                      Text(
+                        'Page ${_currentPage + 1} of $_totalPages',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                        onPressed: _currentPage < _totalPages - 1
+                            ? () {
+                                _loadPassbookByGoods(page: _currentPage + 1);
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           if (_isLoading) customLoader(),
         ],

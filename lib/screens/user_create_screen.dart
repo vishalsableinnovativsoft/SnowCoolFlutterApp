@@ -190,111 +190,113 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
       ),
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 8 : 16,
-              vertical: 8,
-            ),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _isEditing
-                          ? 'Update user details'
-                          : 'Add a new user to the system',
-                      style: GoogleFonts.inter(
-                        fontSize: isMobile ? 12 : 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                      'Username',
-                      _usernameController,
-                      Icons.person,
-                      true,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildPasswordField(),
-                    const SizedBox(height: 8),
-                    _buildRoleDropdown(),
-                    const SizedBox(height: 12),
-                    _buildPermissionRow(
-                      'Active',
-                      _active,
-                      (v) => setState(() => _active = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Customer',
-                      _canManageCustomer,
-                      (v) => setState(() => _canManageCustomer = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Create Customer',
-                      _canCreateCustomer,
-                      (v) => setState(() => _canCreateCustomer = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Goods',
-                      _canManageGoodsItem,
-                      (v) => setState(() => _canManageGoodsItem = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Challans',
-                      _canManageChallan,
-                      (v) => setState(() => _canManageChallan = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Profiles',
-                      _canManageProfile,
-                      (v) => setState(() => _canManageProfile = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Settings',
-                      _canManageSetting,
-                      (v) => setState(() => _canManageSetting = v),
-                    ),
-                    _buildPermissionRow(
-                      'Can Manage Passbook',
-                      _canManagePassbook,
-                      (v) => setState(() => _canManagePassbook = v),
-                    ), // ← NEW ROW
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submitUser,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(0, 140, 192, 1),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 8 : 16,
+                vertical: 8,
+              ),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isEditing
+                            ? 'Update user details'
+                            : 'Add a new user to the system',
+                        style: GoogleFonts.inter(
+                          fontSize: isMobile ? 12 : 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                _isEditing ? 'Update User' : 'Create User',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        'Username',
+                        _usernameController,
+                        Icons.person,
+                        true,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildPasswordField(),
+                      const SizedBox(height: 8),
+                      _buildRoleDropdown(),
+                      const SizedBox(height: 12),
+                      _buildPermissionRow(
+                        'Active',
+                        _active,
+                        (v) => setState(() => _active = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Customer',
+                        _canManageCustomer,
+                        (v) => setState(() => _canManageCustomer = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Create Customer',
+                        _canCreateCustomer,
+                        (v) => setState(() => _canCreateCustomer = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Goods',
+                        _canManageGoodsItem,
+                        (v) => setState(() => _canManageGoodsItem = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Challans',
+                        _canManageChallan,
+                        (v) => setState(() => _canManageChallan = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Profiles',
+                        _canManageProfile,
+                        (v) => setState(() => _canManageProfile = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Settings',
+                        _canManageSetting,
+                        (v) => setState(() => _canManageSetting = v),
+                      ),
+                      _buildPermissionRow(
+                        'Can Manage Passbook',
+                        _canManagePassbook,
+                        (v) => setState(() => _canManagePassbook = v),
+                      ), // ← NEW ROW
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _submitUser,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromRGBO(0, 140, 192, 1),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  _isEditing ? 'Update User' : 'Create User',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

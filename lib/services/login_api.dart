@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/api_config.dart';
 import '../utils/token_manager.dart';
@@ -82,14 +83,14 @@ class LoginApi {
     // http://154.61.76.108:8081/api/v1/auth/login
     final body = jsonEncode({'username': username, 'password': password});
 
-    print('LoginApi: POST $uri');
+    debugPrint('LoginApi: POST $uri');
 
     try {
       final resp = await http
           .post(uri, headers: {'Content-Type': 'application/json'}, body: body)
           .timeout(const Duration(seconds: 12));
 
-      print('LoginApi: ${resp.statusCode} → ${resp.body}');
+      debugPrint('LoginApi: ${resp.statusCode} → ${resp.body}');
 
       if (resp.statusCode == 200) {
         final jsonMap = jsonDecode(resp.body) as Map<String, dynamic>;
@@ -104,7 +105,7 @@ class LoginApi {
             permissions: jsonMap, // pass full JSON → extracts all can* flags
           );
 
-          print('TokenManager: Login successful → ID=${response.id}, Role=${response.role}');
+          debugPrint('TokenManager: Login successful → ID=${response.id}, Role=${response.role}');
         }
 
         return response;
@@ -125,7 +126,7 @@ class LoginApi {
     } on TimeoutException {
       return LoginResponse(success: false, message: 'Connection timeout');
     } catch (e) {
-      print('LoginApi error: $e');
+      debugPrint('LoginApi error: $e');
       return LoginResponse(success: false, message: 'Network error');
     }
   }

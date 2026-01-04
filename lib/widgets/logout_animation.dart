@@ -39,7 +39,7 @@ class LogoutAnimationScreen extends StatelessWidget {
                           height: 90,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: primaryColor.withOpacity(0.2),
+                            color: primaryColor.withValues(alpha: 0.2),
                           ),
                         ),
                       );
@@ -54,7 +54,7 @@ class LogoutAnimationScreen extends StatelessWidget {
                       color: primaryColor,
                       boxShadow: [
                         BoxShadow(
-                          color: primaryColor.withOpacity(0.4),
+                          color: primaryColor.withValues(alpha: 0.4),
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
@@ -81,7 +81,7 @@ class LogoutAnimationScreen extends StatelessWidget {
                 letterSpacing: 1.5,
                 shadows: [
                   Shadow(
-                    color: primaryColor.withOpacity(0.5),
+                    color: primaryColor.withValues(alpha: 0.5),
                     offset: const Offset(0, 2),
                     blurRadius: 8,
                   ),
@@ -129,7 +129,7 @@ class LogoutAnimationScreen extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.7),
+                    color: primaryColor.withValues(alpha: 0.7),
                     shape: BoxShape.circle,
                   ),
                 );

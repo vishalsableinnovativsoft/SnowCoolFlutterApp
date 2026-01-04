@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +9,6 @@ import 'package:snow_trading_cool/services/customer_api.dart';
 import 'package:snow_trading_cool/services/goods_api.dart';
 import 'package:snow_trading_cool/services/passbook_api.dart';
 import 'package:snow_trading_cool/utils/constants.dart';
-import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import 'package:snow_trading_cool/widgets/drawer.dart';
 
@@ -23,9 +20,9 @@ class PassBookScreen extends StatefulWidget {
     this.customerDeposit,
   });
 
-  final customerId;
-  final customerName;
-  final customerDeposit;
+  final dynamic customerId;
+  final dynamic customerName;
+  final dynamic customerDeposit;
 
   @override
   State<PassBookScreen> createState() => _PassBookScreenState();
@@ -126,7 +123,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
               border: Border.all(color: const Color(0xFFB3E0F2)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.12),
+                  color: Colors.grey.withValues(alpha: 0.12),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -198,7 +195,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
                                       fontSize: fontSize,
                                     ),
                                     // maxLines: 2,
-                                    // overflow: TextOverflow.ellipsis,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Padding(
@@ -209,6 +206,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
                                   child: Text(
                                     p.openingBalance.toString(),
                                     textAlign: TextAlign.center,
+                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.inter(
                                       fontSize: fontSize,
                                       fontWeight: FontWeight.bold,
@@ -226,6 +224,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
                                   child: Text(
                                     p.closingBalance.toString(),
                                     textAlign: TextAlign.center,
+                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.inter(
                                       fontSize: fontSize,
                                       fontWeight: FontWeight.bold,
@@ -244,15 +243,13 @@ class _PassBookScreenState extends State<PassBookScreen> {
                                     onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              GoodsPassbook(
-                                                customerName:
-                                                    displayedCustomerName,
-                                                    customerId: selectedCustomerId!,
-                                                fromDate: _fromDate,
-                                                toDate: _toDate,
-                                                itemName: p.name,
-                                              ),
+                                          builder: (context) => GoodsPassbook(
+                                            customerName: displayedCustomerName,
+                                            customerId: selectedCustomerId!,
+                                            fromDate: _fromDate,
+                                            toDate: _toDate,
+                                            itemName: p.name,
+                                          ),
                                         ),
                                       );
                                     },
@@ -291,7 +288,6 @@ class _PassBookScreenState extends State<PassBookScreen> {
           );
   }
 
-  
   Widget _headerCell(String text) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
     child: Text(
@@ -664,145 +660,187 @@ class _PassBookScreenState extends State<PassBookScreen> {
               ),
             ),
             // if (isAdmin)
-              IconButton(
-                onPressed: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                ),
-                icon: const Icon(Icons.home),
+            IconButton(
+              onPressed: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
               ),
+              icon: const Icon(Icons.home),
+            ),
           ],
         ),
       ),
       drawer: const ShowSideMenu(),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            isSmallScreen
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildCustomerSearchField(),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDateButton(
-                              "From Date",
-                              _fromDate,
-                              () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: _fromDate ?? DateTime.now(),
-                                  firstDate: DateTime(2005),
-                                  lastDate: DateTime.now(),
-                                  builder: (context, child) {
-                                    return Theme(
-                                      data: Theme.of(context).copyWith(
-                                        colorScheme: ColorScheme.light(
-                                          primary: AppColors.accentBlue,
-                                          onPrimary: Colors.white,
-                                          surface: Colors.white,
-                                          onSurface: Colors.black87,
-                                        ),
-                                        textButtonTheme: TextButtonThemeData(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor:
-                                                AppColors.accentBlue,
-                                            textStyle: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              isSmallScreen
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCustomerSearchField(),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDateButton(
+                                "From Date",
+                                _fromDate,
+                                () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _fromDate ?? DateTime.now(),
+                                    firstDate: DateTime(2005),
+                                    lastDate: DateTime.now(),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary: AppColors.accentBlue,
+                                            onPrimary: Colors.white,
+                                            surface: Colors.white,
+                                            onSurface: Colors.black87,
+                                          ),
+                                          textButtonTheme: TextButtonThemeData(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor:
+                                                  AppColors.accentBlue,
+                                              textStyle: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      child: child!,
-                                    );
-                                  },
-                                );
-                                if (picked != null) {
-                                  setState(() => _fromDate = picked);
-                                  if (selectedCustomerId != null) {
-                                    _fetchPassbookProducts();
-                                  } else {
-                                    showErrorToast(
-                                      context,
-                                      "Select customer first",
-                                    );
+                                        child: child!,
+                                      );
+                                    },
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _fromDate = picked);
+                                    if (selectedCustomerId != null) {
+                                      _fetchPassbookProducts();
+                                    } else {
+                                      showErrorToast(
+                                        context,
+                                        "Select customer first",
+                                      );
+                                    }
                                   }
-                                }
-                              },
+                                },
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildDateButton(
-                              "To Date",
-                              _toDate,
-                              () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: _toDate ?? DateTime.now(),
-                                  firstDate:
-                                      _fromDate?.add(const Duration(days: 1)) ??
-                                      DateTime(2005),
-                                  lastDate: DateTime.now(),
-                                  builder: (context, child) {
-                                    return Theme(
-                                      data: Theme.of(context).copyWith(
-                                        colorScheme: ColorScheme.light(
-                                          primary: AppColors.accentBlue,
-                                          onPrimary: Colors.white,
-                                          surface: Colors.white,
-                                          onSurface: Colors.black87,
-                                        ),
-                                        textButtonTheme: TextButtonThemeData(
-                                          style: TextButton.styleFrom(
-                                            foregroundColor:
-                                                AppColors.accentBlue,
-                                            textStyle: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildDateButton(
+                                "To Date",
+                                _toDate,
+                                () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _toDate ?? DateTime.now(),
+                                    firstDate:
+                                        _fromDate?.add(const Duration(days: 1)) ??
+                                        DateTime(2005),
+                                    lastDate: DateTime.now(),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary: AppColors.accentBlue,
+                                            onPrimary: Colors.white,
+                                            surface: Colors.white,
+                                            onSurface: Colors.black87,
+                                          ),
+                                          textButtonTheme: TextButtonThemeData(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor:
+                                                  AppColors.accentBlue,
+                                              textStyle: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      child: child!,
-                                    );
-                                  },
-                                );
-                                if (picked != null) {
-                                  setState(() => _toDate = picked);
-                                  if (selectedCustomerId != null) {
-                                    _fetchPassbookProducts();
-                                  } else {
-                                    showErrorToast(
-                                      context,
-                                      "Select customer first",
-                                    );
+                                        child: child!,
+                                      );
+                                    },
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _toDate = picked);
+                                    if (selectedCustomerId != null) {
+                                      _fetchPassbookProducts();
+                                    } else {
+                                      showErrorToast(
+                                        context,
+                                        "Select customer first",
+                                      );
+                                    }
                                   }
-                                }
-                              },
+                                },
+                              ),
                             ),
+                            const SizedBox(width: 10),
+                            _buildResetButton(),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(flex: 2, child: _buildCustomerSearchField()),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildDateButton(
+                            "From Date",
+                            _fromDate,
+                            () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _fromDate ?? DateTime.now(),
+                                firstDate: DateTime(2005),
+                                lastDate: DateTime.now(),
+                                builder: (context, child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: ColorScheme.light(
+                                        primary: AppColors.accentBlue,
+                                        onPrimary: Colors.white,
+                                        surface: Colors.white,
+                                        onSurface: Colors.black87,
+                                      ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.accentBlue,
+                                          textStyle: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (picked != null) {
+                                setState(() => _fromDate = picked);
+                              }
+                              if (selectedCustomerId != null) {
+                                _fetchPassbookProducts();
+                              }
+                            },
                           ),
-                          const SizedBox(width: 10),
-                          _buildResetButton(),
-                        ],
-                      ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(flex: 2, child: _buildCustomerSearchField()),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildDateButton(
-                          "From Date",
-                          _fromDate,
-                          () async {
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildDateButton("To Date", _toDate, () async {
                             final picked = await showDatePicker(
                               context: context,
-                              initialDate: _fromDate ?? DateTime.now(),
-                              firstDate: DateTime(2005),
+                              initialDate: _toDate ?? DateTime.now(),
+                              firstDate:
+                                  _fromDate?.add(const Duration(days: 1)) ??
+                                  DateTime(2005),
                               lastDate: DateTime.now(),
                               builder: (context, child) {
                                 return Theme(
@@ -826,122 +864,94 @@ class _PassBookScreenState extends State<PassBookScreen> {
                                 );
                               },
                             );
-                            if (picked != null)
-                              setState(() => _fromDate = picked);
+                            if (picked != null) setState(() => _toDate = picked);
                             if (selectedCustomerId != null) {
                               _fetchPassbookProducts();
                             }
-                          },
+                          }),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildDateButton("To Date", _toDate, () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: _toDate ?? DateTime.now(),
-                            firstDate:
-                                _fromDate?.add(const Duration(days: 1)) ??
-                                DateTime(2005),
-                            lastDate: DateTime.now(),
-                            builder: (context, child) {
-                              return Theme(
-                                data: Theme.of(context).copyWith(
-                                  colorScheme: ColorScheme.light(
-                                    primary: AppColors.accentBlue,
-                                    onPrimary: Colors.white,
-                                    surface: Colors.white,
-                                    onSurface: Colors.black87,
-                                  ),
-                                  textButtonTheme: TextButtonThemeData(
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: AppColors.accentBlue,
-                                      textStyle: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                        const SizedBox(width: 10),
+                        _buildResetButton(),
+                      ],
+                    ),
+        
+              const SizedBox(height: 32),
+        
+              Expanded(
+                child: isCustomerSelected
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  displayedCustomerName,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
                                   ),
                                 ),
-                                child: child!,
-                              );
-                            },
-                          );
-                          if (picked != null) setState(() => _toDate = picked);
-                          if (selectedCustomerId != null) {
-                            _fetchPassbookProducts();
-                          }
-                        }),
-                      ),
-                      const SizedBox(width: 10),
-                      _buildResetButton(),
-                    ],
-                  ),
-
-            const SizedBox(height: 32),
-
-            Expanded(
-              child: isCustomerSelected
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                              ),
+        
+                              // Small gap
+                              const SizedBox(width: 12),
+        
+                              IntrinsicWidth(
+                                child: Text(
+                                  "Balance: ₹${(balance ?? 0).toStringAsFixed(2)}",
+                                  textAlign: TextAlign.right,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.accentBlue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          _buildProductsTable(),
+                        ],
+                      )
+                    : Center(
+                        child: Column(
+                          // mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            Icon(
+                              Icons.person_search_rounded,
+                              size: 80,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 16),
                             Text(
-                              displayedCustomerName,
+                              "Select Customer Name",
                               style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade600,
                               ),
                             ),
-                            const Spacer(),
+                            const SizedBox(height: 8),
                             Text(
-                              "Balance: ₹ ${balance ?? 0}",
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.accentBlue,
+                              "Search and select a customer to view their passbook",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey.shade500,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        _buildProductsTable(),
-                      ],
-                    )
-                  : Center(
-                      child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.person_search_rounded,
-                            size: 80,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Select Customer Name",
-                            style: GoogleFonts.inter(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Search and select a customer to view their passbook",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

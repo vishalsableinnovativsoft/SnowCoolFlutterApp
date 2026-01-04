@@ -305,158 +305,160 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
       drawer: ShowSideMenu(),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLabel("Logo"),
-                const SizedBox(height: 8),
-                Center(
-                  child: GestureDetector(
-                    onTap: () => _pickImage(true),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[200],
-                      child: _buildLogoImage(),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLabel("Logo"),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _pickImage(true),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[200],
+                        child: _buildLogoImage(),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                _buildLabel("Invoice Prefix"),
-                _buildTextField(_isEditableInvoicePrefix, _invoicePrefixController, "e.g., INV-"),
-                const SizedBox(height: 16),
-
-                _buildLabel("Challan Number Format"),
-                _buildTextField(_isEditableChallanFormat, _challanFormatController, "e.g., CH-YYYY-####"),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Spacer(),
-                    Checkbox(
-                      value: !_isEditableInvoicePrefix,
-                      activeColor: blueColor,
-                      onChanged: _applyDefaultValues,
-                    ),
-                    const Text(
-                      "Default",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: blueColor),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 20),
+            
+                  _buildLabel("Invoice Prefix"),
+                  _buildTextField(_isEditableInvoicePrefix, _invoicePrefixController, "e.g., INV-"),
+                  const SizedBox(height: 16),
+            
+                  _buildLabel("Challan Number Format"),
+                  _buildTextField(_isEditableChallanFormat, _challanFormatController, "e.g., CH-YYYY-####"),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Spacer(),
+                      Checkbox(
+                        value: !_isEditableInvoicePrefix,
+                        activeColor: blueColor,
+                        onChanged: _applyDefaultValues,
+                      ),
+                      const Text(
+                        "Default",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: blueColor),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+            
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel("Challan Sequence"),
+                            _buildTextField(
+                              true,
+                              _challanSequenceController,
+                              "e.g., 1",
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              onChanged: _validateChallanSequence,
+                              errorText: _challanSequenceError,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
                         children: [
-                          _buildLabel("Challan Sequence"),
-                          _buildTextField(
-                            true,
-                            _challanSequenceController,
-                            "e.g., 1",
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            onChanged: _validateChallanSequence,
-                            errorText: _challanSequenceError,
+                          const SizedBox(height: 30),
+                          GestureDetector(
+                            onTap: _resetSequence,
+                            child: Container(
+                              width: 100,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: blueColor, width: 2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.refresh_outlined, color: blueColor),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      "Reset",
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: blueColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      children: [
-                        const SizedBox(height: 30),
-                        GestureDetector(
-                          onTap: _resetSequence,
-                          child: Container(
-                            width: 100,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: blueColor, width: 2),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.refresh_outlined, color: blueColor),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "Reset",
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: blueColor),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+            
+                  _buildLabel("Terms & Conditions"),
+                  _buildTextField(true, _termsController, "e.g.,", maxLines: 3),
+                  const SizedBox(height: 20),
+            
+                  _buildLabel("Upload Signature"),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _pickImage(false),
+                    child: Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade400, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4)),
+                        ],
+                        image: _buildSignatureImage(),
+                      ),
+                      child: _signatureBase64 == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.upload_file_rounded, size: 40, color: Colors.blueGrey.shade400),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Tap to upload signature",
+                                  style: TextStyle(
+                                    color: Colors.blueGrey.shade600,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel("Terms & Conditions"),
-                _buildTextField(true, _termsController, "e.g.,", maxLines: 3),
-                const SizedBox(height: 20),
-
-                _buildLabel("Upload Signature"),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () => _pickImage(false),
-                  child: Container(
-                    height: 120,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade400, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4)),
-                      ],
-                      image: _buildSignatureImage(),
-                    ),
-                    child: _signatureBase64 == null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.upload_file_rounded, size: 40, color: Colors.blueGrey.shade400),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Tap to upload signature",
-                                style: TextStyle(
-                                  color: Colors.blueGrey.shade600,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
                                 ),
-                              ),
-                            ],
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 25),
-
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _challanSequenceError != null ? null : _saveSettings,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: blueColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(
-                      _isExisting ? "Update" : "Save",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ],
+                            )
+                          : null,
                     ),
                   ),
-                ),
-                const SizedBox(height: 15),
-              ],
+                  const SizedBox(height: 25),
+            
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _challanSequenceError != null ? null : _saveSettings,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: blueColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text(
+                        _isExisting ? "Update" : "Save",
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              ),
             ),
           ),
 

@@ -124,8 +124,9 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
     }
   }
 
-  Future<void> _showUserGoodsDetails(int challanId) async {
-    if (challanId <= 0) {
+  Future<void> _showUserGoodsDetails(int customerId) async {
+    double remainingBalance = 0.0;
+    if (customerId <= 0) {
       showErrorToast(context, "Invalid challan ID");
       return;
     }
@@ -139,7 +140,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
     );
 
     final inventoryItems = await ChallanApi().getCustomerPendingInventoryItems(
-      challanId,
+      customerId,
       context,
     );
 
@@ -169,21 +170,34 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
       return;
     }
 
+    if (customerId != null && customerId > 0) {
+    try {
+      remainingBalance = await CustomerApi().getCustomerPreviousBalance(
+            customerId,
+            context,
+          ) ??
+          0.0;
+    } catch (e) {
+      debugPrint("Failed to load remaining balance: $e");
+      remainingBalance = 0.0;
+    }
+  }
+
     final List<Map<String, dynamic>> displayItems = inventoryItems.map((item) {
-      String srNoStr = '';
-      final srNoRaw = item['srNo'];
-      if (srNoRaw is List && srNoRaw.isNotEmpty) {
-        srNoStr = srNoRaw.map((e) => e.toString().trim()).join('/');
-      } else if (srNoRaw != null) {
-        srNoStr = srNoRaw.toString().trim();
-      }
+      // String srNoStr = '';
+      // final srNoRaw = item['srNo'];
+      // if (srNoRaw is List && srNoRaw.isNotEmpty) {
+      //   srNoStr = srNoRaw.map((e) => e.toString().trim()).join('/');
+      // } else if (srNoRaw != null) {
+      //   srNoStr = srNoRaw.toString().trim();
+      // }
 
       return {
         'name': item['name'] ?? 'Unknown',
         'receivedQty': item['receivedQty'] ?? 0,
         'deliveredQty': item['deliveredQty'] ?? 0,
         'type': (item['type']?.toString() ?? '').trim(),
-        'srNo': srNoStr,
+        // 'srNo': srNoStr,
         'id': item['id'],
       };
     }).toList();
@@ -307,13 +321,19 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                 SizedBox(
                   height: 5,
                 ),
-                Text(
-                  "Deposit: ₹ 5000.00",
+               Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "Deposit: ₹ ${remainingBalance.toStringAsFixed(2)}",
                   style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    color: remainingBalance > 0
+                        ? Colors.green.shade800
+                        : Colors.red.shade800,
                   ),
                 ),
+              ),
               ],
             ),
           ),
@@ -441,204 +461,144 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
         color: AppColors.accentBlue,
         child: Stack(
           children: [
-            Column(
-              children: [
-                // Search & Filters
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          cursorColor: AppColors.accentBlue,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.search),
-                            hintText: 'Search by name, mobile or email...',
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: const Color.fromRGBO(156, 156, 156, 1),
-                              ),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.accentBlue,
-                                width: 2,
-                              ),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(8),
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                          ),
-                        ),
-                      ),
-                      if (_searchController.text.isNotEmpty) ...[
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          height: 56,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              _searchController.clear();
-                              _currentSearchQuery = '';
-                              _currentPage = 0;
-                              _fetchCustomers();
-                            },
-                            icon: const Icon(
-                              Icons.clear,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              "Clear",
-                              style: GoogleFonts.inter(color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red.shade600,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // Responsive Table
-                Expanded(
-                  child: _filteredData.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.people_outline,
-                                size: 80,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                _searchController.text.isNotEmpty
-                                    ? "No customers found matching '$_searchQuery'"
-                                    : "No customer created",
-                                style: GoogleFonts.inter(
-                                  fontSize: 18,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w500,
+            SafeArea(
+              child: Column(
+                children: [
+                  // Search & Filters
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            cursorColor: AppColors.accentBlue,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.search),
+                              hintText: 'Search by name, mobile or email...',
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: const Color.fromRGBO(156, 156, 156, 1),
                                 ),
-                                textAlign: TextAlign.center,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
                               ),
-                            ],
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppColors.accentBlue,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8),
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
                           ),
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Fixed Name Column
-                            SizedBox(
-                              width: nameColWidth,
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: 56,
-                                    color: AppColors.accentBlue,
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'Customer Name',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                        ),
+                        if (_searchController.text.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                _searchController.clear();
+                                _currentSearchQuery = '';
+                                _currentPage = 0;
+                                _fetchCustomers();
+                              },
+                              icon: const Icon(
+                                Icons.clear,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                "Clear",
+                                style: GoogleFonts.inter(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red.shade600,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+              
+                  // Responsive Table
+                  Expanded(
+                    child: _filteredData.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.people_outline,
+                                  size: 80,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  _searchController.text.isNotEmpty
+                                      ? "No customers found matching '$_searchQuery'"
+                                      : "No customer created",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Fixed Name Column
+                              SizedBox(
+                                width: nameColWidth,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 56,
+                                      color: AppColors.accentBlue,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        'Customer Name',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  ..._filteredData.map((row) {
-                                    final isSelected = _selectedIds.contains(
-                                      row['id'].toString(),
-                                    );
-                                    return InkWell(
-                                      onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => PassBookScreen(
-                                            customerId: row['id'],
-                                            customerName: row['name'],
-                                            customerDeposit: row['deposite'],
-                                          ),
-                                        ),
-                                      ),
-                                      child: Container(
-                                        height: 56,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                        ),
-                                        alignment: Alignment.centerLeft,
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? Colors.blue.shade50
-                                              : null,
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color: Colors.grey.shade300,
+                                    ..._filteredData.map((row) {
+                                      final isSelected = _selectedIds.contains(
+                                        row['id'].toString(),
+                                      );
+                                      return InkWell(
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => PassBookScreen(
+                                              customerId: row['id'],
+                                              customerName: row['name'],
+                                              customerDeposit: row['deposite'],
                                             ),
                                           ),
                                         ),
-                                        child: Text(
-                                          row['name'],
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.inter(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.w500,
-                                            color: AppColors.accentBlue,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
-
-                            // Scrollable Right Table
-                            Expanded(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                child: SingleChildScrollView(
-                                  // scrollDirection: Axis.vertical,
-                                  // physics:
-                                  //     const AlwaysScrollableScrollPhysics(),
-                                  child: Column(
-                                    children: [
-                                      // Header Row
-                                      Container(
-                                        height: 56,
-                                        color: AppColors.accentBlue,
-                                        child: Row(
-                                          children: [
-                                            _header('Mobile', mobileColWidth),
-                                            _header('Email', emailColWidth),
-                                            _header('Address', addressColWidth),
-                                            _header(
-                                              'Passbook',
-                                              passbookColWidth,
-                                            ),
-                                            _header('Actions', actionsColWidth),
-                                          ],
-                                        ),
-                                      ),
-                                      // Data Rows
-                                      ..._filteredData.map((row) {
-                                        final isSelected = _selectedIds
-                                            .contains(row['id'].toString());
-                                        return Container(
+                                        child: Container(
                                           height: 56,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
+                                          alignment: Alignment.centerLeft,
                                           decoration: BoxDecoration(
                                             color: isSelected
                                                 ? Colors.blue.shade50
@@ -649,174 +609,236 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                               ),
                                             ),
                                           ),
+                                          child: Text(
+                                            row['name'],
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.inter(
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.w500,
+                                              color: AppColors.accentBlue,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+              
+                              // Scrollable Right Table
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  child: SingleChildScrollView(
+                                    // scrollDirection: Axis.vertical,
+                                    // physics:
+                                    //     const AlwaysScrollableScrollPhysics(),
+                                    child: Column(
+                                      children: [
+                                        // Header Row
+                                        Container(
+                                          height: 56,
+                                          color: AppColors.accentBlue,
                                           child: Row(
                                             children: [
-                                              _cell(
-                                                row['contactNumber'] ?? '—',
-                                                mobileColWidth,
+                                              _header('Mobile', mobileColWidth),
+                                              _header('Email', emailColWidth),
+                                              _header('Address', addressColWidth),
+                                              _header(
+                                                'Passbook',
+                                                passbookColWidth,
                                               ),
-                                              _cell(
-                                                row['email']?.isEmpty ?? true
-                                                    ? '—'
-                                                    : row['email'],
-                                                emailColWidth,
-                                              ),
-                                              _cell(
-                                                row['address']?.isEmpty ?? true
-                                                    ? '—'
-                                                    : row['address'],
-                                                addressColWidth,
-                                              ),
-                                              SizedBox(
-                                                width: passbookColWidth,
-                                                child: IconButton(
-                                                  onPressed: () async {
-                                                    setState(
-                                                      () => _isLoading = true,
-                                                    );
-                                                    try {
-                                                      final id =
-                                                          int.tryParse(
-                                                            row['id']
-                                                                .toString(),
-                                                          ) ??
-                                                          0;
-                                                      if (id <= 0) {
-                                                        showErrorToast(
-                                                          context,
-                                                          "Invalid Challan ID",
-                                                        );
-                                                        return;
-                                                      }
-                                                      await CustomerApi()
-                                                          .downloadAndShowPdf(
-                                                            row,
-                                                            context: context,
-                                                            customerId:
-                                                                row['id'],
-                                                            customerName:
-                                                                row['name'],
-                                                          );
-                                                    } catch (e) {
-                                                      showErrorToast(
-                                                        context,
-                                                        "Failed to load PDF",
-                                                      );
-                                                    } finally {
-                                                      setState(
-                                                        () =>
-                                                            _isLoading = false,
-                                                      );
-                                                    }
-                                                  },
-                                                  icon: Image.asset(
-                                                    "assets/images/passbook.png",
-                                                    width: 26,
-                                                  ),
+                                              _header('Actions', actionsColWidth),
+                                            ],
+                                          ),
+                                        ),
+                                        // Data Rows
+                                        ..._filteredData.map((row) {
+                                          final isSelected = _selectedIds
+                                              .contains(row['id'].toString());
+                                          return Container(
+                                            height: 56,
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? Colors.blue.shade50
+                                                  : null,
+                                              border: Border(
+                                                bottom: BorderSide(
+                                                  color: Colors.grey.shade300,
                                                 ),
                                               ),
-                                              SizedBox(
-                                                width: actionsColWidth,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    IconButton(
-                                                      onPressed: () =>
-                                                          _showUserGoodsDetails(
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                _cell(
+                                                  row['contactNumber'] ?? '—',
+                                                  mobileColWidth,
+                                                ),
+                                                _cell(
+                                                  row['email']?.isEmpty ?? true
+                                                      ? '—'
+                                                      : row['email'],
+                                                  emailColWidth,
+                                                ),
+                                                _cell(
+                                                  row['address']?.isEmpty ?? true
+                                                      ? '—'
+                                                      : row['address'],
+                                                  addressColWidth,
+                                                ),
+                                                SizedBox(
+                                                  width: passbookColWidth,
+                                                  child: IconButton(
+                                                    onPressed: () async {
+                                                      setState(
+                                                        () => _isLoading = true,
+                                                      );
+                                                      try {
+                                                        final id =
                                                             int.tryParse(
+                                                              row['id']
+                                                                  .toString(),
+                                                            ) ??
+                                                            0;
+                                                        if (id <= 0) {
+                                                          showErrorToast(
+                                                            context,
+                                                            "Invalid Challan ID",
+                                                          );
+                                                          return;
+                                                        }
+                                                        await CustomerApi()
+                                                            .downloadAndShowPdf(
+                                                              row,
+                                                              context: context,
+                                                              customerId:
+                                                                  row['id'],
+                                                              customerName:
+                                                                  row['name'],
+                                                            );
+                                                      } catch (e) {
+                                                        showErrorToast(
+                                                          context,
+                                                          "Failed to load PDF",
+                                                        );
+                                                      } finally {
+                                                        setState(
+                                                          () =>
+                                                              _isLoading = false,
+                                                        );
+                                                      }
+                                                    },
+                                                    icon: Image.asset(
+                                                      "assets/images/passbook.png",
+                                                      width: 26,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: actionsColWidth,
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.center,
+                                                    children: [
+                                                      IconButton(
+                                                        onPressed: () =>
+                                                            _showUserGoodsDetails(
+                                                              int.tryParse(
+                                                                    row['id']
+                                                                        .toString(),
+                                                                  ) ??
+                                                                  0,
+                                                            ),
+                                                        icon: Icon(
+                                                          CupertinoIcons
+                                                              .doc_text_search,
+                                                          color: Color.fromRGBO(
+                                                            0,
+                                                            140,
+                                                            192,
+                                                            1,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      if (isAdmin)
+                                                        IconButton(
+                                                          icon: Image.asset(
+                                                            "assets/images/edit.png",
+                                                            width: 26,
+                                                          ),
+                                                          onPressed: () =>
+                                                              _editCustomer(
+                                                                row['id'],
+                                                              ),
+                                                        ),
+                                                      if (isAdmin)
+                                                        IconButton(
+                                                          icon: const Icon(
+                                                            CupertinoIcons
+                                                                .bin_xmark_fill,
+                                                            color: Colors.red,
+                                                          ),
+                                                          onPressed: () {
+                                                            final id =
+                                                                int.tryParse(
                                                                   row['id']
                                                                       .toString(),
                                                                 ) ??
-                                                                0,
-                                                          ),
-                                                      icon: Icon(
-                                                        CupertinoIcons
-                                                            .doc_text_search,
-                                                        color: Color.fromRGBO(
-                                                          0,
-                                                          140,
-                                                          192,
-                                                          1,
+                                                                0;
+                                                            _deleteCustomer(id);
+                                                          },
                                                         ),
-                                                      ),
-                                                    ),
-                                                    if (isAdmin)
-                                                      IconButton(
-                                                        icon: Image.asset(
-                                                          "assets/images/edit.png",
-                                                          width: 26,
-                                                        ),
-                                                        onPressed: () =>
-                                                            _editCustomer(
-                                                              row['id'],
-                                                            ),
-                                                      ),
-                                                    if (isAdmin)
-                                                      IconButton(
-                                                        icon: const Icon(
-                                                          CupertinoIcons
-                                                              .bin_xmark_fill,
-                                                          color: Colors.red,
-                                                        ),
-                                                        onPressed: () {
-                                                          final id =
-                                                              int.tryParse(
-                                                                row['id']
-                                                                    .toString(),
-                                                              ) ??
-                                                              0;
-                                                          _deleteCustomer(id);
-                                                        },
-                                                      ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }),
-                                    ],
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                ),
-                // Pagination
-                Container(
-                  color: const Color(0xFFB3E0F2),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: _currentPage > 0
-                            ? () {
-                                setState(() => _currentPage--);
-                                _fetchCustomers();
-                              }
-                            : null,
-                      ),
-                      Text(
-                        'Page ${_currentPage + 1} of $_totalPages',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: _currentPage < _totalPages - 1
-                            ? () {
-                                setState(() => _currentPage++);
-                                _fetchCustomers();
-                              }
-                            : null,
-                      ),
-                    ],
+                            ],
+                          ),
                   ),
-                ),
-              ],
+                  // Pagination
+                  Container(
+                    color: const Color(0xFFB3E0F2),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: _currentPage > 0
+                              ? () {
+                                  setState(() => _currentPage--);
+                                  _fetchCustomers();
+                                }
+                              : null,
+                        ),
+                        Text(
+                          'Page ${_currentPage + 1} of $_totalPages',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right),
+                          onPressed: _currentPage < _totalPages - 1
+                              ? () {
+                                  setState(() => _currentPage++);
+                                  _fetchCustomers();
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (_isLoading) customLoader(),
           ],

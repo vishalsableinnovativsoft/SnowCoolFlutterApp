@@ -246,42 +246,44 @@ class _UserViewScreenState extends State<UserViewScreen> {
         color: AppColors.accentBlue,
         child: Stack(
           children: [
-            Padding(
-              padding: EdgeInsets.only(
-                left: isMobile ? 16 : 24,
-                right: isMobile ? 16 : 24,
-                top: 16,
-                bottom: 80,
-              ),
-              child: _users.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.people_outline,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No users found',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: isMobile ? 16 : 24,
+                  right: isMobile ? 16 : 24,
+                  top: 16,
+                  bottom: 80,
+                ),
+                child: _users.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.people_outline,
+                              size: 64,
                               color: Colors.grey,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'No users found',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _users.length,
+                        itemBuilder: (context, index) {
+                          final user = _users[index];
+                          return _buildUserCard(user, isMobile, index);
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _users.length,
-                      itemBuilder: (context, index) {
-                        final user = _users[index];
-                        return _buildUserCard(user, isMobile, index);
-                      },
-                    ),
+              ),
             ),
 
             if (_isLoading) customLoader(),
@@ -324,7 +326,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
         border: Border.all(color: Colors.grey.shade300, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 6,
             offset: const Offset(0, 3),

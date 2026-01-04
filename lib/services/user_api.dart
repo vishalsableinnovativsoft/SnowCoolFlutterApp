@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:snow_trading_cool/models/user_model.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';

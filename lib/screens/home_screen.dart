@@ -1,12 +1,9 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/screens/profile_screen.dart';
 import 'package:snow_trading_cool/screens/view_customer_screen.dart';
 import 'package:snow_trading_cool/screens/view_user_screen.dart';
-import 'package:snow_trading_cool/services/challan_api.dart';
-import 'package:snow_trading_cool/services/goods_api.dart';
 import 'package:snow_trading_cool/utils/constants.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/screens/view_challan.dart';
@@ -26,10 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userRole = 'Employee';
   ImageProvider? _logoImage;
 
-  List<GoodsDTO> _allGoods = [];
-  bool _goodsLoading = true;
+  // List<GoodsDTO> _allGoods = [];
+  // bool _goodsLoading = true;
 
-  final GoodsApi _api = GoodsApi();
+  // final GoodsApi _api = GoodsApi();
 
   DashboardSummary? _dashboardData;
   bool _dashboardLoading = true;
@@ -43,23 +40,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserRole();
-    _loadGoods();
+    // _loadGoods();
     _loadDashboardData();
     if (isAdmin || canManageSettings) _loadAppSettingsLogo();
   }
 
-  Future<void> _loadGoods() async {
-    setState(() => _goodsLoading = true);
-    try {
-      final goods = await _api.getAllGoods();
-      setState(() {
-        _allGoods = goods;
-        _goodsLoading = false;
-      });
-    } catch (e) {
-      setState(() => _goodsLoading = false);
-    }
-  }
+  // Future<void> _loadGoods() async {
+  //   setState(() => _goodsLoading = true);
+  //   try {
+  //     final goods = await _api.getAllGoods();
+  //     setState(() {
+  //       _allGoods = goods;
+  //       _goodsLoading = false;
+  //     });
+  //   } catch (e) {
+  //     setState(() => _goodsLoading = false);
+  //   }
+  // }
 
   Future<void> _loadDashboardData() async {
     try {
@@ -113,20 +110,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     bool canManageProfile = TokenManager().canManageProfile;
     bool canManageCustomer = TokenManager().canManageCustomer;
-    bool canCreateCustomer = TokenManager().canCreateCustomer;
+    // bool canCreateCustomer = TokenManager().canCreateCustomer;
     bool canManageChallan = TokenManager().canManageChallan;
 
     // Calculate total delivered & received item quantities
     final int totalDeliveredItems =
         _dashboardData?.productSummaries.fold(
           0,
-          (sum, p) => sum! + (p.totalDelivered ?? 0),
+          (sum, p) => sum! + (p.totalDelivered),
         ) ??
         0;
     final int totalReceivedItems =
         _dashboardData?.productSummaries.fold(
           0,
-          (sum, p) => sum! + (p.totalReceived ?? 0),
+          (sum, p) => sum! + (p.totalReceived),
         ) ??
         0;
 
@@ -152,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          if (canManageProfile || isAdmin)
+          if (canManageProfile|| canManageSettings || isAdmin)
             Padding(
               padding: EdgeInsets.only(right: isMobile ? 8 : 12),
               child: PopupMenuButton<String>(
@@ -205,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const ShowSideMenu(),
       body: RefreshIndicator(
         onRefresh: () => Future.wait([
-          _loadGoods(),
+          // _loadGoods(),
           _loadDashboardData(),
           if (isAdmin || canManageSettings || canManageProfile)
             _loadAppSettingsLogo(),
@@ -213,321 +210,323 @@ class _HomeScreenState extends State<HomeScreen> {
         color: AppColors.accentBlue,
         child: Stack(
           children: [
-            Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: verticalGap),
-                        Text(
-                          'Total Inventory',
-                          style: GoogleFonts.inter(
-                            fontSize: titleFontSize,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF515151),
-                          ),
-                        ),
-                        SizedBox(height: verticalGap),
-
-                        Row(
-                          children: [
-                            // LEFT: Total Delivered Items
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 12,
-                                ),
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: const Color.fromRGBO(0, 140, 192, 1),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _dashboardLoading
-                                                ? '—'
-                                                : totalDeliveredItems
-                                                      .toString(),
-                                            style: GoogleFonts.inter(
-                                              fontSize: isMobile ? 28 : 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color.fromRGBO(
-                                                0,
-                                                140,
-                                                192,
-                                                1,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Delivered Items',
-                                            style: GoogleFonts.inter(
-                                              fontSize: isMobile ? 16 : 18,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.outbox_rounded,
-                                      size: 40,
-                                      color: Color.fromRGBO(0, 140, 192, 1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            // RIGHT: Total Received Items
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 12,
-                                ),
-                                margin: const EdgeInsets.only(left: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: const Color.fromRGBO(0, 140, 192, 1),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _dashboardLoading
-                                                ? '—'
-                                                : totalReceivedItems.toString(),
-                                            style: GoogleFonts.inter(
-                                              fontSize: isMobile ? 28 : 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color.fromRGBO(
-                                                0,
-                                                140,
-                                                192,
-                                                1,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            'Received Items',
-                                            style: GoogleFonts.inter(
-                                              fontSize: isMobile ? 16 : 18,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.move_to_inbox_rounded,
-                                      size: 40,
-                                      color: Color.fromRGBO(0, 140, 192, 1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: sectionGap),
-                        _buildProductsTable(),
-
-                        SizedBox(height: sectionGap),
-                        const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                        SizedBox(height: sectionGap),
-
-                        Text(
-                          'Customers',
-                          style: GoogleFonts.inter(
-                            fontSize: titleFontSize,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF515151),
-                          ),
-                        ),
-                        SizedBox(height: verticalGap),
-                        GestureDetector(
-                          onTap: () => canManageCustomer || isAdmin
-                              ? Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const ViewCustomerScreenFixed(),
-                                  ),
-                                )
-                              : null,
-                          child: Container(
-                            height: isMobile ? 56 : 64,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(cardRadius),
-                              border: Border.all(
-                                color: const Color.fromRGBO(0, 140, 192, 1),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _dashboardLoading
-                                              ? '—'
-                                              : (_dashboardData?.totalCustomers
-                                                        .toString() ??
-                                                    '0'),
-                                          style: GoogleFonts.inter(
-                                            fontSize: countFontSize,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color.fromRGBO(
-                                              0,
-                                              140,
-                                              192,
-                                              1,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          'Customers',
-                                          style: GoogleFonts.inter(
-                                            fontSize: labelFontSize,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: const Color.fromRGBO(0, 140, 192, 1),
-                                  size: iconSize,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(height: sectionGap),
-                        const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                        SizedBox(height: sectionGap),
-
-                        if ((!isAdmin && canManageChallan) || isAdmin)
+            SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: verticalGap),
                           Text(
-                            'Orders/Challans',
+                            'Total Inventory',
                             style: GoogleFonts.inter(
                               fontSize: titleFontSize,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFF515151),
                             ),
                           ),
-                        SizedBox(height: verticalGap),
-                        if (canManageChallan || isAdmin)
+                          SizedBox(height: verticalGap),
+              
                           Row(
                             children: [
+                              // LEFT: Total Delivered Items
                               Expanded(
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    setState(() => _isNavigating = true);
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            ViewChallanScreen(type: "received"),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color.fromRGBO(0, 140, 192, 1),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _dashboardLoading
+                                                  ? '—'
+                                                  : totalDeliveredItems
+                                                        .toString(),
+                                              style: GoogleFonts.inter(
+                                                fontSize: isMobile ? 28 : 32,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color.fromRGBO(
+                                                  0,
+                                                  140,
+                                                  192,
+                                                  1,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Delivered Items',
+                                              style: GoogleFonts.inter(
+                                                fontSize: isMobile ? 16 : 18,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    );
-                                    if (mounted) {
-                                      setState(() => _isNavigating = false);
-                                    }
-                                  },
-                                  child: _buildOrderCard(
-                                    _dashboardLoading
-                                        ? '—'
-                                        : (_dashboardData?.totalReceivedChallans
-                                                  .toString() ??
-                                              '0'),
-                                    'Received',
-                                    orderCountFontSize,
-                                    orderLabelFontSize,
-                                    cardRadius,
-                                    isMobile,
+                                      const Icon(
+                                        Icons.outbox_rounded,
+                                        size: 40,
+                                        color: Color.fromRGBO(0, 140, 192, 1),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                              SizedBox(width: isMobile ? 10 : 14),
+              
+                              // RIGHT: Total Received Items
                               Expanded(
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    setState(() => _isNavigating = true);
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => ViewChallanScreen(
-                                          type: "Delivered",
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  margin: const EdgeInsets.only(left: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color.fromRGBO(0, 140, 192, 1),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _dashboardLoading
+                                                  ? '—'
+                                                  : totalReceivedItems.toString(),
+                                              style: GoogleFonts.inter(
+                                                fontSize: isMobile ? 28 : 32,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color.fromRGBO(
+                                                  0,
+                                                  140,
+                                                  192,
+                                                  1,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Received Items',
+                                              style: GoogleFonts.inter(
+                                                fontSize: isMobile ? 16 : 18,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    );
-                                    if (mounted) {
-                                      setState(() => _isNavigating = false);
-                                    }
-                                  },
-                                  child: _buildOrderCard(
-                                    _dashboardLoading
-                                        ? '—'
-                                        : (_dashboardData
-                                                  ?.totalDeliveredChallans
-                                                  .toString() ??
-                                              '0'),
-                                    'Delivered',
-                                    orderCountFontSize,
-                                    orderLabelFontSize,
-                                    cardRadius,
-                                    isMobile,
+                                      const Icon(
+                                        Icons.move_to_inbox_rounded,
+                                        size: 40,
+                                        color: Color.fromRGBO(0, 140, 192, 1),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        const SizedBox(height: 30),
-                      ],
+              
+                          SizedBox(height: sectionGap),
+                          _buildProductsTable(),
+              
+                          SizedBox(height: sectionGap),
+                          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                          SizedBox(height: sectionGap),
+              
+                          Text(
+                            'Customers',
+                            style: GoogleFonts.inter(
+                              fontSize: titleFontSize,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF515151),
+                            ),
+                          ),
+                          SizedBox(height: verticalGap),
+                          GestureDetector(
+                            onTap: () => canManageCustomer || isAdmin
+                                ? Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ViewCustomerScreenFixed(),
+                                    ),
+                                  )
+                                : null,
+                            child: Container(
+                              height: isMobile ? 56 : 64,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(cardRadius),
+                                border: Border.all(
+                                  color: const Color.fromRGBO(0, 140, 192, 1),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _dashboardLoading
+                                                ? '—'
+                                                : (_dashboardData?.totalCustomers
+                                                          .toString() ??
+                                                      '0'),
+                                            style: GoogleFonts.inter(
+                                              fontSize: countFontSize,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color.fromRGBO(
+                                                0,
+                                                140,
+                                                192,
+                                                1,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            'Customers',
+                                            style: GoogleFonts.inter(
+                                              fontSize: labelFontSize,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: const Color.fromRGBO(0, 140, 192, 1),
+                                    size: iconSize,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+              
+                          SizedBox(height: sectionGap),
+                          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                          SizedBox(height: sectionGap),
+              
+                          if ((!isAdmin && canManageChallan) || isAdmin)
+                            Text(
+                              'Orders/Challans',
+                              style: GoogleFonts.inter(
+                                fontSize: titleFontSize,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF515151),
+                              ),
+                            ),
+                          SizedBox(height: verticalGap),
+                          if (canManageChallan || isAdmin)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      setState(() => _isNavigating = true);
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              ViewChallanScreen(type: "received"),
+                                        ),
+                                      );
+                                      if (mounted) {
+                                        setState(() => _isNavigating = false);
+                                      }
+                                    },
+                                    child: _buildOrderCard(
+                                      _dashboardLoading
+                                          ? '—'
+                                          : (_dashboardData?.totalReceivedChallans
+                                                    .toString() ??
+                                                '0'),
+                                      'Received',
+                                      orderCountFontSize,
+                                      orderLabelFontSize,
+                                      cardRadius,
+                                      isMobile,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: isMobile ? 10 : 14),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      setState(() => _isNavigating = true);
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => ViewChallanScreen(
+                                            type: "Delivered",
+                                          ),
+                                        ),
+                                      );
+                                      if (mounted) {
+                                        setState(() => _isNavigating = false);
+                                      }
+                                    },
+                                    child: _buildOrderCard(
+                                      _dashboardLoading
+                                          ? '—'
+                                          : (_dashboardData
+                                                    ?.totalDeliveredChallans
+                                                    .toString() ??
+                                                '0'),
+                                      'Delivered',
+                                      orderCountFontSize,
+                                      orderLabelFontSize,
+                                      cardRadius,
+                                      isMobile,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
-            if (_isNavigating || _goodsLoading || _dashboardLoading)
+            if (_isNavigating || _dashboardLoading) // _goodsLoading
               customLoader(),
           ],
         ),
@@ -545,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: const Color(0xFFB3E0F2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.12),
+            color: Colors.grey.withValues(alpha: 0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

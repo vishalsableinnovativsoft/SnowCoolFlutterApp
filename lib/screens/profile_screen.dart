@@ -257,10 +257,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
         ],
       ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Padding(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isMobile ? 16 : 24,
                 vertical: 16,
@@ -312,10 +312,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            // Full-screen loaders
-            if (_isLoading || _isSaving) customLoader(),
-          ],
-        ),
+          ),
+          // Full-screen loaders
+          if (_isLoading || _isSaving) customLoader(),
+        ],
       ),
     );
   }

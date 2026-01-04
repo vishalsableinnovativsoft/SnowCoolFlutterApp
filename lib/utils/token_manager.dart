@@ -54,7 +54,7 @@ class TokenManager {
 
     final expiryTime = _getTokenExpiryTime(token);
     if (expiryTime == null) {
-      print('TokenManager: Could not parse expiry, no auto-logout scheduled');
+      debugPrint('TokenManager: Could not parse expiry, no auto-logout scheduled');
       return;
     }
 
@@ -65,10 +65,10 @@ class TokenManager {
       logout();
     } else {
       _logoutTimer = Timer(duration, () {
-        print('TokenManager: Token expired, auto-logout triggered');
+        debugPrint('TokenManager: Token expired, auto-logout triggered');
         logout();
       });
-      print('TokenManager: Auto-logout scheduled at $expiryTime');
+      debugPrint('TokenManager: Auto-logout scheduled at $expiryTime');
     }
   }
 
@@ -84,7 +84,7 @@ class TokenManager {
       if (exp == null) return null;
       return DateTime.fromMillisecondsSinceEpoch((exp as num).toInt() * 1000);
     } catch (e) {
-      print('TokenManager: Failed to parse JWT expiry: $e');
+      debugPrint('TokenManager: Failed to parse JWT expiry: $e');
       return null;
     }
   }
@@ -106,7 +106,7 @@ class TokenManager {
     _logoutTimer?.cancel();
     _logoutTimer = null;
 
-    print('TokenManager: User logged out');
+    debugPrint('TokenManager: User logged out');
 
     // Optional: Navigate to login screen (requires context!)
     // You can make this customizable via a callback:
