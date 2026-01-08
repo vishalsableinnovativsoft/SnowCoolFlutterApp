@@ -24,6 +24,13 @@ class ViewCustomerScreenFixed extends StatefulWidget {
 }
 
 class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
+   late final width = MediaQuery.of(context).size.width;
+
+    // 🔹 Breakpoints
+    late final bool isMobile = width < 600;
+    late final bool isTablet = width >= 600 && width < 1024;
+    late final bool isDesktop = width >= 1024;
+
   bool canCreateCustomer = TokenManager().canCreateCustomer;
 
   final CustomerApi _api = CustomerApi();
@@ -40,7 +47,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
   String _currentSearchQuery = '';
 
   int _currentPage = 0;
-  final int _rowsPerPage = 8;
+  late final int _rowsPerPage = 9;
   int _totalPages = 1;
 
   String _userRole = 'Employee';
@@ -105,7 +112,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
           'contactNumber': c.contactNumber,
           'email': c.email ?? '',
           'address': c.address ?? '',
-          'deposite': c.deposite,
+          'runningBalance': c.runningBalance,
           'reminder': c.reminder,
           'items': c.items,
         };
@@ -124,8 +131,11 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
     }
   }
 
-  Future<void> _showUserGoodsDetails(int customerId) async {
-    double remainingBalance = 0.0;
+  Future<void> _showUserGoodsDetails(
+    int customerId,
+    double runningBalance,
+  ) async {
+    double remainingBalance = runningBalance;
     if (customerId <= 0) {
       showErrorToast(context, "Invalid challan ID");
       return;
@@ -157,12 +167,63 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text("Goods Details"),
-          content: const Text("No items found."),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.receipt_long,
+                color: Color.fromRGBO(0, 140, 192, 1),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "Goods Details",
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 200),
+            // width: double.maxFinite,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: const Text(
+                      "No items found.",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "Deposit: ₹ ${remainingBalance.toStringAsFixed(2)}",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: remainingBalance >= 0
+                          ? Colors.green.shade800
+                          : Colors.red.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
+              child: Text(
+                "Close",
+                style: GoogleFonts.inter(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -170,35 +231,27 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
       return;
     }
 
-    if (customerId != null && customerId > 0) {
-    try {
-      remainingBalance = await CustomerApi().getCustomerPreviousBalance(
-            customerId,
-            context,
-          ) ??
-          0.0;
-    } catch (e) {
-      debugPrint("Failed to load remaining balance: $e");
-      remainingBalance = 0.0;
-    }
-  }
+    //   if (customerId != null && customerId > 0) {
+    //   try {
+    //     remainingBalance = await CustomerApi().getCustomerPreviousBalance(
+    //           customerId,
+    //           context,
+    //         ) ??
+    //         0.0;
+    //   } catch (e) {
+    //     debugPrint("Failed to load remaining balance: $e");
+    //     remainingBalance = 0.0;
+    //   }
+    // }
 
     final List<Map<String, dynamic>> displayItems = inventoryItems.map((item) {
-      // String srNoStr = '';
-      // final srNoRaw = item['srNo'];
-      // if (srNoRaw is List && srNoRaw.isNotEmpty) {
-      //   srNoStr = srNoRaw.map((e) => e.toString().trim()).join('/');
-      // } else if (srNoRaw != null) {
-      //   srNoStr = srNoRaw.toString().trim();
-      // }
-
       return {
         'name': item['name'] ?? 'Unknown',
         'receivedQty': item['receivedQty'] ?? 0,
         'deliveredQty': item['deliveredQty'] ?? 0,
-        'type': (item['type']?.toString() ?? '').trim(),
+        // 'type': (item['type']?.toString() ?? '').trim(),
         // 'srNo': srNoStr,
-        'id': item['id'],
+        // 'id': item['id'],
       };
     }).toList();
 
@@ -228,6 +281,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
               children: [
                 // Header
                 Row(
+                  spacing: 5,
                   children: [
                     const Expanded(
                       child: Text(
@@ -298,6 +352,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
+                                color: Colors.green,
                               ),
                             ),
                           ),
@@ -309,7 +364,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
-                                color: Colors.green.shade700,
+                                color: Colors.red,
                               ),
                             ),
                           ),
@@ -318,22 +373,20 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 5,
-                ),
-               Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "Deposit: ₹ ${remainingBalance.toStringAsFixed(2)}",
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    color: remainingBalance > 0
-                        ? Colors.green.shade800
-                        : Colors.red.shade800,
+                SizedBox(height: 5),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "Deposit: ₹ ${remainingBalance.toStringAsFixed(2)}",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      color: remainingBalance > 0
+                          ? Colors.green.shade800
+                          : Colors.red.shade800,
+                    ),
                   ),
                 ),
-              ),
               ],
             ),
           ),
@@ -354,14 +407,221 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
     );
   }
 
+  Widget _header(String text, double width) => SizedBox(
+    width: width,
+    child: Center(
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 13.5,
+        ),
+      ),
+    ),
+  );
+
+  Widget _cell(String text, double width) => SizedBox(
+    width: width,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.inter(fontSize: 13.5),
+      ),
+    ),
+  );
+
+  Future<void> _editCustomer(customerId) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CreateCustomerScreen(customerId: customerId),
+      ),
+    );
+
+    if (result == true) {
+      _fetchCustomers();
+    }
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            _searchController.text.isNotEmpty
+                ? "No customers found for '$_searchQuery'"
+                : "No customers yet",
+            style: GoogleFonts.inter(fontSize: 18, color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
+          ),
+          if (_searchController.text.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => _searchController.clear(),
+              child: const Text("Clear search"),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteCustomer(int customerId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text('Delete Customer'),
+        content: const Text('Are you sure you want to delete this customer?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final resp = await _api.deleteCustomer(customerId);
+      if (resp.success) {
+        await _fetchCustomers();
+        if (mounted)
+          showSuccessToast(context, "Customer deleted successfully!");
+      } else {
+        if (mounted) showErrorToast(context, 'Delete failed: ${resp.message}');
+      }
+    } catch (e) {
+      if (mounted) showErrorToast(context, 'Error: $e');
+    }
+  }
+
+  List<Widget> _buildPageNumbers({required bool isMobile}) {
+    List<Widget> pages = [];
+
+    int delta = isMobile
+        ? 0
+        : 1; // ← This controls how many pages on each side of current
+    // delta = 2 → total 5 pages in middle (2 left + current + 2 right)
+
+    if (_totalPages <= delta * 2 + 3) {
+      // If total pages are small enough, show all pages (no ellipsis needed)
+      for (int i = 1; i <= _totalPages; i++) {
+        pages.add(_pageButton(i, i == _currentPage + 1));
+      }
+    } else {
+      // Always show page 1
+      pages.add(_pageButton(1, _currentPage == 0));
+
+      // Calculate the range around current page
+      int left = _currentPage - delta + 1; // +1 because pages are 1-based
+      int right = _currentPage + delta + 1;
+
+      // Adjust when near the beginning
+      if (left < 2) {
+        right += (2 - left);
+        left = 2;
+      }
+
+      // Adjust when near the end
+      if (right > _totalPages - 1) {
+        left -= (right - (_totalPages - 1));
+        right = _totalPages - 1;
+      }
+      if (left < 2) left = 2;
+
+      // Ellipsis after page 1
+      if (left > 2) {
+        pages.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '...',
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        );
+      }
+
+      // Middle 5 pages
+      for (int i = left; i <= right; i++) {
+        pages.add(_pageButton(i, i == _currentPage + 1));
+      }
+
+      // Ellipsis before last page
+      if (right < _totalPages - 1) {
+        pages.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '...',
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        );
+      }
+
+      // Always show last page
+      if (_totalPages > 1) {
+        pages.add(_pageButton(_totalPages, _currentPage == _totalPages - 1));
+      }
+    }
+
+    return pages;
+  }
+
+  Widget _pageButton(int pageNum, bool isCurrent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: isCurrent
+            ? null
+            : () {
+                setState(() {
+                  _currentPage = pageNum - 1;
+                  _fetchCustomers();
+                });
+              },
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isCurrent ? Colors.blue[800] : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: isCurrent ? null : Border.all(color: Colors.blue[800]!),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$pageNum',
+            style: TextStyle(
+              color: isCurrent ? Colors.white : Colors.blue[800],
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    // 🔹 Breakpoints
-    final bool isMobile = width < 600;
-    final bool isTablet = width >= 600 && width < 1024;
-    final bool isDesktop = width >= 1024;
+   
 
     final bool isAdmin = _userRole == 'ADMIN';
 
@@ -530,7 +790,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                       ],
                     ),
                   ),
-              
+
                   // Responsive Table
                   Expanded(
                     child: _filteredData.isEmpty
@@ -589,7 +849,8 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                             builder: (_) => PassBookScreen(
                                               customerId: row['id'],
                                               customerName: row['name'],
-                                              customerDeposit: row['deposite'],
+                                              customerDeposit:
+                                                  row['runningBalance'],
                                             ),
                                           ),
                                         ),
@@ -625,180 +886,178 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                   ],
                                 ),
                               ),
-              
+
                               // Scrollable Right Table
                               Expanded(
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  physics: const AlwaysScrollableScrollPhysics(),
-                                  child: SingleChildScrollView(
-                                    // scrollDirection: Axis.vertical,
-                                    // physics:
-                                    //     const AlwaysScrollableScrollPhysics(),
-                                    child: Column(
-                                      children: [
-                                        // Header Row
-                                        Container(
-                                          height: 56,
-                                          color: AppColors.accentBlue,
-                                          child: Row(
-                                            children: [
-                                              _header('Mobile', mobileColWidth),
-                                              _header('Email', emailColWidth),
-                                              _header('Address', addressColWidth),
-                                              _header(
-                                                'Passbook',
-                                                passbookColWidth,
-                                              ),
-                                              _header('Actions', actionsColWidth),
-                                            ],
-                                          ),
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  child: Column(
+                                    children: [
+                                      // Header Row
+                                      Container(
+                                        height: 56,
+                                        color: AppColors.accentBlue,
+                                        child: Row(
+                                          children: [
+                                            _header('Mobile', mobileColWidth),
+                                            _header('Email', emailColWidth),
+                                            _header('Address', addressColWidth),
+                                            _header(
+                                              'Passbook',
+                                              passbookColWidth,
+                                            ),
+                                            _header('Actions', actionsColWidth),
+                                          ],
                                         ),
-                                        // Data Rows
-                                        ..._filteredData.map((row) {
-                                          final isSelected = _selectedIds
-                                              .contains(row['id'].toString());
-                                          return Container(
-                                            height: 56,
-                                            decoration: BoxDecoration(
-                                              color: isSelected
-                                                  ? Colors.blue.shade50
-                                                  : null,
-                                              border: Border(
-                                                bottom: BorderSide(
-                                                  color: Colors.grey.shade300,
-                                                ),
+                                      ),
+                                      // Data Rows
+                                      ..._filteredData.map((row) {
+                                        final isSelected = _selectedIds
+                                            .contains(row['id'].toString());
+                                        return Container(
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.blue.shade50
+                                                : null,
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: Colors.grey.shade300,
                                               ),
                                             ),
-                                            child: Row(
-                                              children: [
-                                                _cell(
-                                                  row['contactNumber'] ?? '—',
-                                                  mobileColWidth,
-                                                ),
-                                                _cell(
-                                                  row['email']?.isEmpty ?? true
-                                                      ? '—'
-                                                      : row['email'],
-                                                  emailColWidth,
-                                                ),
-                                                _cell(
-                                                  row['address']?.isEmpty ?? true
-                                                      ? '—'
-                                                      : row['address'],
-                                                  addressColWidth,
-                                                ),
-                                                SizedBox(
-                                                  width: passbookColWidth,
-                                                  child: IconButton(
-                                                    onPressed: () async {
-                                                      setState(
-                                                        () => _isLoading = true,
-                                                      );
-                                                      try {
-                                                        final id =
-                                                            int.tryParse(
-                                                              row['id']
-                                                                  .toString(),
-                                                            ) ??
-                                                            0;
-                                                        if (id <= 0) {
-                                                          showErrorToast(
-                                                            context,
-                                                            "Invalid Challan ID",
-                                                          );
-                                                          return;
-                                                        }
-                                                        await CustomerApi()
-                                                            .downloadAndShowPdf(
-                                                              row,
-                                                              context: context,
-                                                              customerId:
-                                                                  row['id'],
-                                                              customerName:
-                                                                  row['name'],
-                                                            );
-                                                      } catch (e) {
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              _cell(
+                                                row['contactNumber'] ?? '—',
+                                                mobileColWidth,
+                                              ),
+                                              _cell(
+                                                row['email']?.isEmpty ?? true
+                                                    ? '—'
+                                                    : row['email'],
+                                                emailColWidth,
+                                              ),
+                                              _cell(
+                                                row['address']?.isEmpty ?? true
+                                                    ? '—'
+                                                    : row['address'],
+                                                addressColWidth,
+                                              ),
+                                              SizedBox(
+                                                width: passbookColWidth,
+                                                child: IconButton(
+                                                  onPressed: () async {
+                                                    setState(
+                                                      () => _isLoading = true,
+                                                    );
+                                                    try {
+                                                      final id =
+                                                          int.tryParse(
+                                                            row['id']
+                                                                .toString(),
+                                                          ) ??
+                                                          0;
+                                                      if (id <= 0) {
                                                         showErrorToast(
                                                           context,
-                                                          "Failed to load PDF",
+                                                          "Invalid Challan ID",
                                                         );
-                                                      } finally {
-                                                        setState(
-                                                          () =>
-                                                              _isLoading = false,
-                                                        );
+                                                        return;
                                                       }
-                                                    },
-                                                    icon: Image.asset(
-                                                      "assets/images/passbook.png",
-                                                      width: 26,
-                                                    ),
+                                                      await CustomerApi()
+                                                          .downloadAndShowPdf(
+                                                            row,
+                                                            context: context,
+                                                            customerId:
+                                                                row['id'],
+                                                            customerName:
+                                                                row['name'],
+                                                          );
+                                                    } catch (e) {
+                                                      showErrorToast(
+                                                        context,
+                                                        "Failed to load PDF",
+                                                      );
+                                                    } finally {
+                                                      setState(
+                                                        () =>
+                                                            _isLoading = false,
+                                                      );
+                                                    }
+                                                  },
+                                                  icon: Image.asset(
+                                                    "assets/images/passbook.png",
+                                                    width: 26,
                                                   ),
                                                 ),
-                                                SizedBox(
-                                                  width: actionsColWidth,
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.center,
-                                                    children: [
-                                                      IconButton(
-                                                        onPressed: () =>
-                                                            _showUserGoodsDetails(
-                                                              int.tryParse(
-                                                                    row['id']
-                                                                        .toString(),
-                                                                  ) ??
-                                                                  0,
-                                                            ),
-                                                        icon: Icon(
-                                                          CupertinoIcons
-                                                              .doc_text_search,
-                                                          color: Color.fromRGBO(
-                                                            0,
-                                                            140,
-                                                            192,
-                                                            1,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      if (isAdmin)
-                                                        IconButton(
-                                                          icon: Image.asset(
-                                                            "assets/images/edit.png",
-                                                            width: 26,
-                                                          ),
-                                                          onPressed: () =>
-                                                              _editCustomer(
-                                                                row['id'],
-                                                              ),
-                                                        ),
-                                                      if (isAdmin)
-                                                        IconButton(
-                                                          icon: const Icon(
-                                                            CupertinoIcons
-                                                                .bin_xmark_fill,
-                                                            color: Colors.red,
-                                                          ),
-                                                          onPressed: () {
-                                                            final id =
-                                                                int.tryParse(
+                                              ),
+                                              SizedBox(
+                                                width: actionsColWidth,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    IconButton(
+                                                      onPressed: () =>
+                                                          _showUserGoodsDetails(
+                                                            int.tryParse(
                                                                   row['id']
                                                                       .toString(),
                                                                 ) ??
-                                                                0;
-                                                            _deleteCustomer(id);
-                                                          },
+                                                                0,
+                                                            row['runningBalance'] ??
+                                                                0,
+                                                          ),
+                                                      icon: Icon(
+                                                        CupertinoIcons
+                                                            .doc_text_search,
+                                                        color: Color.fromRGBO(
+                                                          0,
+                                                          140,
+                                                          192,
+                                                          1,
                                                         ),
-                                                    ],
-                                                  ),
+                                                      ),
+                                                    ),
+                                                    if (isAdmin)
+                                                      IconButton(
+                                                        icon: Image.asset(
+                                                          "assets/images/edit.png",
+                                                          width: 26,
+                                                        ),
+                                                        onPressed: () =>
+                                                            _editCustomer(
+                                                              row['id'],
+                                                            ),
+                                                      ),
+                                                    if (isAdmin)
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                          CupertinoIcons
+                                                              .bin_xmark_fill,
+                                                          color: Colors.red,
+                                                        ),
+                                                        onPressed: () {
+                                                          final id =
+                                                              int.tryParse(
+                                                                row['id']
+                                                                    .toString(),
+                                                              ) ??
+                                                              0;
+                                                          _deleteCustomer(id);
+                                                        },
+                                                      ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          );
-                                        }),
-                                      ],
-                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -821,10 +1080,14 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                 }
                               : null,
                         ),
-                        Text(
-                          'Page ${_currentPage + 1} of $_totalPages',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                        ),
+
+                        // Text(
+                        //   'Page ${_currentPage + 1} of $_totalPages',
+                        //   style: GoogleFonts.poppins(
+                        //     fontWeight: FontWeight.w600,
+                        //   ),
+                        // ),
+                        ..._buildPageNumbers(isMobile: isMobile),
                         IconButton(
                           icon: const Icon(Icons.chevron_right),
                           onPressed: _currentPage < _totalPages - 1
@@ -845,351 +1108,5 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
         ),
       ),
     );
-  }
-
-  Widget _header(String text, double width) => SizedBox(
-    width: width,
-    child: Center(
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          fontSize: 13.5,
-        ),
-      ),
-    ),
-  );
-
-  Widget _cell(String text, double width) => SizedBox(
-    width: width,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.inter(fontSize: 13.5),
-      ),
-    ),
-  );
-
-  // Future<void> _editCustomer(Map<String, dynamic> customer) async {
-  //   final name = TextEditingController(text: customer['name'] ?? '');
-  //   final mobile = TextEditingController(text: customer['contactNumber'] ?? '');
-  //   final email = TextEditingController(text: customer['email'] ?? '');
-  //   final address = TextEditingController(text: customer['address'] ?? '');
-
-  //   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-  //   final res = await showDialog<bool>(
-  //     context: context,
-  //     barrierDismissible: true,
-  //     builder: (ctx) => AlertDialog(
-  //       backgroundColor: Colors.white,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-  //       title: Row(
-  //         children: [
-  //           const Icon(Icons.person_outline, color: AppColors.accentBlue),
-  //           const SizedBox(width: 10),
-  //           Text(
-  //             'Edit Customer',
-  //             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-  //           ),
-  //         ],
-  //       ),
-  //       content: SizedBox(
-  //         width: 400,
-  //         child: Form(
-  //           key: formKey,
-  //           child: SingleChildScrollView(
-  //             child: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 // Name Field
-  //                 TextFormField(
-  //                   controller: name,
-  //                   textCapitalization: TextCapitalization.words,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Customer Name *',
-  //                     prefixIcon: const Icon(Icons.person),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                     ),
-  //                     focusedBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: AppColors.accentBlue,
-  //                         width: 2,
-  //                       ),
-  //                     ),
-  //                     errorBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: Colors.red,
-  //                         width: 1.5,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   validator: (value) {
-  //                     if (value == null || value.trim().isEmpty) {
-  //                       return 'Name is required';
-  //                     }
-  //                     if (value.trim().length < 2) {
-  //                       return 'Name too short';
-  //                     }
-  //                     return null;
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 16),
-
-  //                 // Mobile Field
-  //                 TextFormField(
-  //                   controller: mobile,
-  //                   keyboardType: TextInputType.phone,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Mobile Number *',
-  //                     prefixIcon: const Icon(Icons.phone),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                     ),
-  //                     focusedBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: AppColors.accentBlue,
-  //                         width: 2,
-  //                       ),
-  //                     ),
-  //                     errorBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: Colors.red,
-  //                         width: 1.5,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   validator: (value) {
-  //                     if (value == null || value.trim().isEmpty) {
-  //                       return 'Mobile is required';
-  //                     }
-  //                     final cleaned = value.replaceAll(RegExp(r'\D'), '');
-  //                     if (cleaned.length != 10) {
-  //                       return 'Enter valid 10-digit mobile';
-  //                     }
-  //                     if (!RegExp(r'^[6-9]\d{9}$').hasMatch(cleaned)) {
-  //                       return 'Invalid Indian mobile number';
-  //                     }
-  //                     return null;
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 16),
-
-  //                 // Email Field (Optional)
-  //                 TextFormField(
-  //                   controller: email,
-  //                   keyboardType: TextInputType.emailAddress,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Email (Optional)',
-  //                     prefixIcon: const Icon(Icons.email_outlined),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                     ),
-  //                     focusedBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: AppColors.accentBlue,
-  //                         width: 2,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                   validator: (value) {
-  //                     if (value == null || value.isEmpty) return null;
-  //                     if (!RegExp(
-  //                       r'^[\w.-]+@[\w-]+\.(com|in|co|org)$',
-  //                     ).hasMatch(value.trim())) {
-  //                       return 'Enter valid email';
-  //                     }
-  //                     return null;
-  //                   },
-  //                 ),
-  //                 const SizedBox(height: 16),
-
-  //                 // Address Field
-  //                 TextFormField(
-  //                   controller: address,
-  //                   maxLines: 2,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Address',
-  //                     prefixIcon: const Icon(Icons.location_on_outlined),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                     ),
-  //                     focusedBorder: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(12),
-  //                       borderSide: const BorderSide(
-  //                         color: AppColors.accentBlue,
-  //                         width: 2,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(ctx, false),
-  //           child: Text(
-  //             'Cancel',
-  //             style: GoogleFonts.poppins(
-  //               color: Colors.red.shade600,
-  //               fontWeight: FontWeight.w600,
-  //             ),
-  //           ),
-  //         ),
-  //         ElevatedButton.icon(
-  //           onPressed: () {
-  //             if (formKey.currentState!.validate()) {
-  //               Navigator.pop(ctx, true);
-  //             }
-  //           },
-  //           icon: const Icon(Icons.save, size: 18),
-  //           label: Text(
-  //             'Update Customer',
-  //             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-  //           ),
-  //           style: ElevatedButton.styleFrom(
-  //             backgroundColor: AppColors.accentBlue,
-  //             foregroundColor: Colors.white,
-  //             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-  //             shape: RoundedRectangleBorder(
-  //               borderRadius: BorderRadius.circular(12),
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-
-  //   if (res != true) return;
-
-  //   try {
-  //     final resp = await _api.updateCustomer(
-  //       customer['id'],
-  //       name.text.trim(),
-  //       mobile.text.trim(),
-  //       email.text.trim(),
-  //       address.text.trim(),
-  //     );
-
-  //     if (!mounted) return;
-
-  //     if (resp.success) {
-  //       await _fetchCustomers();
-  //       showSuccessToast(context, "Customer updated successfully!");
-  //     } else {
-  //       showErrorToast(context, 'Update failed: ${resp.message}');
-  //     }
-  //   } catch (e) {
-  //     if (mounted) showErrorToast(context, 'Error: $e');
-  //   } finally {
-  //     name.dispose();
-  //     mobile.dispose();
-  //     email.dispose();
-  //     address.dispose();
-  //   }
-  // }
-
-  // view_customer_screen.dart
-
-  Future<void> _editCustomer(customerId) async {
-    // // Convert map to CustomerDTO (or fetch full data if needed)
-    // final customerDto = CustomerDTO(
-    //   id: customer['id'],
-    //   name: customer['name'],
-    //   contactNumber: customer['contactNumber'],
-    //   email: customer['email'],
-    //   address: customer['address'],
-    //   deposite: customer['deposite'],
-    //   reminder: customer['reminder'],
-    //   items: customer['items'],
-    // );
-
-    // Navigate to CreateCustomerScreen in edit mode
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CreateCustomerScreen(customerId: customerId),
-      ),
-    );
-
-    if (result == true) {
-      _fetchCustomers();
-    }
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
-          Text(
-            _searchController.text.isNotEmpty
-                ? "No customers found for '$_searchQuery'"
-                : "No customers yet",
-            style: GoogleFonts.inter(fontSize: 18, color: Colors.grey.shade600),
-            textAlign: TextAlign.center,
-          ),
-          if (_searchController.text.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => _searchController.clear(),
-              child: const Text("Clear search"),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Future<void> _deleteCustomer(int customerId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text('Delete Customer'),
-        content: const Text('Are you sure you want to delete this customer?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      final resp = await _api.deleteCustomer(customerId);
-      if (resp.success) {
-        await _fetchCustomers();
-        if (mounted)
-          showSuccessToast(context, "Customer deleted successfully!");
-      } else {
-        if (mounted) showErrorToast(context, 'Delete failed: ${resp.message}');
-      }
-    } catch (e) {
-      if (mounted) showErrorToast(context, 'Error: $e');
-    }
   }
 }

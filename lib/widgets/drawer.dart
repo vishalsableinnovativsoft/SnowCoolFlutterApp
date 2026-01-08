@@ -11,10 +11,12 @@ import 'package:snow_trading_cool/screens/profile_screen.dart';
 import 'package:snow_trading_cool/screens/view_challan.dart';
 import 'package:snow_trading_cool/screens/view_customer_screen.dart';
 import 'package:snow_trading_cool/services/logout_api.dart';
+import 'package:snow_trading_cool/utils/constants.dart';
 import 'package:snow_trading_cool/utils/secure_storage.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import 'package:snow_trading_cool/widgets/logout_animation.dart';
+import 'package:snow_trading_cool/widgets/version.dart';
 
 class ShowSideMenu extends StatefulWidget {
   const ShowSideMenu({super.key});
@@ -39,11 +41,14 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
   bool canManageCustomer = TokenManager().canManageCustomer;
   bool canManageChallan = TokenManager().canManageChallan;
   bool canManageGoodsItem = TokenManager().canManageGoodsItem;
+  String _appVersion = 'v ?.?.?'; // Initial placeholder
+  bool _versionLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserRole();
+    _loadAppVersion();
   }
 
   void _loadUserRole() {
@@ -51,6 +56,16 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
     _userRole = (savedRole?.toUpperCase() == 'ADMIN') ? 'ADMIN' : 'Employee';
     debugPrint('User Role Loaded: $_userRole');
     setState(() {});
+  }
+
+  Future<void> _loadAppVersion() async {
+    final version = await AppVersion.getAppVersion();
+    if (mounted) {
+      setState(() {
+        _appVersion = version;
+        _versionLoaded = true;
+      });
+    }
   }
 
   @override
@@ -61,13 +76,12 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
         ? screenWidth * 0.75
         : (screenWidth * 0.47).clamp(260.0, screenWidth);
 
-        log("can Manage Customer:   ${canManageSetting.toString()}");
-        log("can Manage Passbook:   ${canManagePassbook.toString()}");
-        log("can Create Customer:   ${canCreateCustomer.toString()}");
-        log("can Manage Customer:   ${canManageCustomer.toString()}");
-        log("can Manage Challan:   ${canManageChallan.toString()}");
-        log("can Manage Goods Item:   ${canManageGoodsItem.toString()}");
-
+    log("can Manage Customer:   ${canManageSetting.toString()}");
+    log("can Manage Passbook:   ${canManagePassbook.toString()}");
+    log("can Create Customer:   ${canCreateCustomer.toString()}");
+    log("can Manage Customer:   ${canManageCustomer.toString()}");
+    log("can Manage Challan:   ${canManageChallan.toString()}");
+    log("can Manage Goods Item:   ${canManageGoodsItem.toString()}");
 
     return AnimatedBuilder(
       animation: ModalRoute.of(context)!.animation!,
@@ -83,8 +97,10 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
             child: Material(
               color: Colors.white,
               elevation: 8,
-              borderRadius: BorderRadius.circular(
-                16,
+              borderRadius: BorderRadius.only(
+                // topLeft: ,
+                bottomRight: Radius.circular(isMobile ? 20 : 30),
+                topRight: Radius.circular(isMobile ? 20 : 30),
               ), // Radius for professional look
               child: SizedBox(
                 width: panelWidth,
@@ -102,9 +118,9 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.grey[50],
-                              borderRadius: const BorderRadius.only(
-                                // topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(isMobile ? 20 : 30),
+                                bottomRight: Radius.circular(isMobile ? 20 : 30),
                               ),
                               boxShadow: [
                                 BoxShadow(
@@ -168,7 +184,6 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          // Rest of menu items (same as original, but with better padding)
                           Expanded(
                             child: SingleChildScrollView(
                               padding: const EdgeInsets.symmetric(
@@ -183,54 +198,64 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                       title: const Text('Challan'),
                                       trailing: Icon(
                                         _showChallanSubMenu
-                                            ? Icons.remove
-                                            : Icons.add,
-                                        color: const Color(0xFF008CC0),
+                                            ? Icons.keyboard_arrow_down_rounded
+                                            : Icons.arrow_forward_ios,
+                                        color: AppColors.accentBlue,
                                       ),
-                                      onTap: () => setStateDialog(
-                                        () => _showChallanSubMenu =
-                                            !_showChallanSubMenu,
-                                      ),
+                                      onTap: () => setStateDialog(() {
+                                        _showChallanSubMenu =
+                                            !_showChallanSubMenu;
+                                        if (!_showChallanSubMenu) {
+                                          _showCreateChallanSubMenu = false;
+                                        }
+                                      }),
                                     ),
 
                                   if (_showChallanSubMenu) ...[
-                                    _subMenu('Create Challan Entry', () {
-                                      setState(() {
+                                    ListTile(
+                                      leading: const SizedBox(
+                                        width: 1,
+                                      ), // Indent alignment
+                                      title: const Text('Challan Entry'),
+                                      trailing: Icon(
+                                        _showCreateChallanSubMenu
+                                            ? Icons.remove
+                                            : Icons.add,
+                                        // size: 20,
+                                        color: AppColors.accentBlue,
+                                      ),
+                                      dense: true,
+                                      onTap: () => setStateDialog(() {
                                         _showCreateChallanSubMenu =
-                                            true; // Open nested menu
-                                      });
-                                    }),
+                                            !_showCreateChallanSubMenu;
+                                      }),
+                                    ),
+
                                     if (_showCreateChallanSubMenu) ...[
-                                      _subMenu(
-                                        '             Delivered Entry',
-                                        () {
-                                          Navigator.pop(context);
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ChallanScreen(
-                                                    mode: ChallanMode.delivered,
-                                                  ),
+                                      _subMenu('        Delivered Entry', () {
+                                        Navigator.pop(context);
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => const ChallanScreen(
+                                              mode: ChallanMode.delivered,
                                             ),
-                                          );
-                                        },
-                                      ),
-                                      _subMenu(
-                                        '             Received Entry',
-                                        () {
-                                          Navigator.pop(context);
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ChallanScreen(
-                                                    mode: ChallanMode.received,
-                                                  ),
+                                          ),
+                                        );
+                                      }),
+                                      _subMenu('        Received Entry', () {
+                                        Navigator.pop(context);
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => const ChallanScreen(
+                                              mode: ChallanMode.received,
                                             ),
-                                          );
-                                        },
-                                      ),
+                                          ),
+                                        );
+                                      }),
                                     ],
-                                    _subMenu('View Challan', () {
+
+                                    // View Challan (separate item)
+                                    _subMenu('    View Challan', () {
                                       Navigator.pop(context);
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -242,6 +267,8 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                       );
                                     }),
                                   ],
+
+                                  ///////////////////////////
                                   const Divider(height: 1),
                                   if (canManageCustomer ||
                                       canCreateCustomer ||
@@ -250,8 +277,8 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                       title: const Text('Customers'),
                                       trailing: Icon(
                                         _showCustomerSubMenu
-                                            ? Icons.remove
-                                            : Icons.add,
+                                            ? Icons.keyboard_arrow_down_rounded
+                                            : Icons.arrow_forward_ios,
                                         color: const Color(0xFF008CC0),
                                       ),
                                       onTap: () => setStateDialog(
@@ -261,7 +288,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                     ),
                                   if (_showCustomerSubMenu) ...[
                                     if (canCreateCustomer || isAdmin)
-                                      _subMenu('Create Customer', () {
+                                      _subMenu('    Create Customer', () {
                                         Navigator.pop(context);
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
@@ -271,7 +298,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                         );
                                       }),
                                     if (canManageCustomer || isAdmin)
-                                      _subMenu('View Customers', () {
+                                      _subMenu('    View Customers', () {
                                         Navigator.pop(context);
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
@@ -326,73 +353,119 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                           ),
                           // const Spacer(),
                           const Divider(height: 1),
-                          // Bottom Row - Responsive: Full Settings ListTile in tablet, Icon only in mobile
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16.0,
                             ),
-                            child: Row(
+                            child: Column(
                               children: [
-                                // Logout takes most space
-                                Expanded(
-                                  child: ListTile(
-                                    title: const Text(
-                                      'Logout',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    leading: const Icon(
-                                      Icons.logout,
-                                      color: Colors.red,
-                                    ),
-                                    onTap: () async {
-                                      _showLogoutConfirmation(context);
-                                    },
-                                  ),
-                                ),
-                                // Settings - conditional based on mode
-                                if (canManageSetting || isAdmin)
-                                  if (isMobile)
-                                    // Mobile: Only icon
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.settings,
-                                        size: 28,
-                                        color: Colors.black,
-                                      ),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const ProfileScreen(),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  else
-                                    // Tablet: Full ListTile with text
+                                Row(
+                                  children: [
+                                    // Logout takes most space
                                     Expanded(
                                       child: ListTile(
-                                        leading: const Icon(
-                                          Icons.settings,
-                                          color: Colors.black,
+                                        title: const Text(
+                                          'Logout',
+                                          style: TextStyle(color: Colors.red),
                                         ),
-                                        title: const Text('Settings'),
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ProfileScreen(),
-                                            ),
-                                          );
+                                        leading: const Icon(
+                                          Icons.logout,
+                                          color: Colors.red,
+                                        ),
+                                        onTap: () async {
+                                          _showLogoutConfirmation(context);
                                         },
                                       ),
                                     ),
+                                    if (canManageSetting || isAdmin)
+                                      if (isMobile)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.settings,
+                                            size: 28,
+                                            color: Colors.black,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ProfileScreen(),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      else
+                                        Expanded(
+                                          child: ListTile(
+                                            leading: const Icon(
+                                              Icons.settings,
+                                              color: Colors.black,
+                                            ),
+                                            title: const Text('Settings'),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const ProfileScreen(),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            "Design & Developed by Zerlak Technology",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          //       Text(
+                                          //   "Version : 1.0.11",
+                                          //   style: GoogleFonts.inter(
+                                          //     fontSize: 12,
+                                          //     color: Colors.grey,
+                                          //   ),
+                                          // ),
+                                        ],
+                                      ),
+                                    ),
+                                    Image.asset(
+                                      "assets/images/zerlak_logo.jpg",
+                                      height: 30,
+                                      // width: 30,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _appVersion,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(width: 30),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 5),
                         ],
                       );
                     },

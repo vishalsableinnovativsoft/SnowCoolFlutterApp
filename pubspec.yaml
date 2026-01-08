@@ -3,7 +3,7 @@ description: "Snowcool Trading Co. Mobile App - Gas Cylinder Management System."
 
 publish_to: 'none'
 
-version: 1.0.10+5
+version: 1.0.2+5
 
 environment:
   sdk: ^3.9.0
@@ -30,6 +30,8 @@ dependencies:
   open_filex: ^4.7.0
   collection: ^1.19.1
   intl: ^0.20.2
+  package_info_plus: ^9.0.0
+  countup: ^0.1.4
 
 flutter_launcher_icons:
   android: true

@@ -37,6 +37,14 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
     _loadUserRole();
   }
 
+  @override
+  void dispose() {
+    _productNameCtrl.dispose();
+    _resetForm();
+    _loadUserRole();
+    super.dispose();
+  }
+
   Future<void> _loadGoods() async {
     setState(() {
       _goodsLoading = true;

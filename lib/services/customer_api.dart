@@ -22,6 +22,7 @@ class CustomerDTO {
   final String? email;
   final String? reminder;
   final double? deposite;
+  final double? runningBalance;
   final List<Map<String, dynamic>>? items;
 
   CustomerDTO({
@@ -32,6 +33,7 @@ class CustomerDTO {
     this.email,
     this.reminder,
     this.deposite,
+    this.runningBalance,
     this.items,
   });
 
@@ -44,6 +46,7 @@ class CustomerDTO {
       email: json['email']?.toString().trim(),
       reminder: json['reminder']?.toString().trim(),
       deposite: _parseDouble(json['deposite']),
+      runningBalance: _parseDouble(json['runningBalance']),
       items: json['items'] is List
           ? List<Map<String, dynamic>>.from(json['items'])
           : null,

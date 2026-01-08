@@ -6,10 +6,11 @@
 class ApiConfig {
   /// Available server URLs
   static const String remoteUrl = 'http://154.61.76.108:8081';
-  static const String localUrl = 'http://localhost:8081';
+  static const String localUrl = 'http://192.168.1.5:8081';
 
   /// Toggle between remote and local server (true = remote, false = local)
   static bool useRemoteServer = true;
+
 
   /// Base URL used by network services. Automatically switches based on useRemoteServer flag
   static String get baseUrl => useRemoteServer ? remoteUrl : localUrl;

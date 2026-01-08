@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:countup/countup.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/screens/profile_screen.dart';
@@ -149,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          if (canManageProfile|| canManageSettings || isAdmin)
+          if (canManageProfile || canManageSettings || isAdmin)
             Padding(
               padding: EdgeInsets.only(right: isMobile ? 8 : 12),
               child: PopupMenuButton<String>(
@@ -234,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           SizedBox(height: verticalGap),
-              
+
                           Row(
                             children: [
                               // LEFT: Total Delivered Items
@@ -248,7 +249,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color.fromRGBO(0, 140, 192, 1),
+                                      color: const Color.fromRGBO(
+                                        0,
+                                        140,
+                                        192,
+                                        1,
+                                      ),
                                     ),
                                   ),
                                   child: Row(
@@ -258,22 +264,63 @@ class _HomeScreenState extends State<HomeScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              _dashboardLoading
-                                                  ? '—'
-                                                  : totalDeliveredItems
-                                                        .toString(),
-                                              style: GoogleFonts.inter(
-                                                fontSize: isMobile ? 28 : 32,
-                                                fontWeight: FontWeight.bold,
-                                                color: const Color.fromRGBO(
-                                                  0,
-                                                  140,
-                                                  192,
-                                                  1,
-                                                ),
-                                              ),
-                                            ),
+                                            _dashboardLoading
+                                                ? Text(
+                                                    '—',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: isMobile
+                                                          ? 28
+                                                          : 32,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                            0,
+                                                            140,
+                                                            192,
+                                                            1,
+                                                          ),
+                                                    ),
+                                                  )
+                                                : Countup(
+                                                    begin: 0,
+                                                    end: totalDeliveredItems
+                                                        .toDouble(),
+                                                    duration: const Duration(
+                                                      seconds: 2,
+                                                    ),
+                                                    curve: Curves.easeOutCubic,
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: isMobile
+                                                          ? 28
+                                                          : 32,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                            0,
+                                                            140,
+                                                            192,
+                                                            1,
+                                                          ),
+                                                    ),
+                                                  ),
+                                            // Text(
+                                            //   _dashboardLoading
+                                            //       ? '—'
+                                            //       : totalDeliveredItems
+                                            //             .toString(),
+                                            //   style: GoogleFonts.inter(
+                                            //     fontSize: isMobile ? 28 : 32,
+                                            //     fontWeight: FontWeight.bold,
+                                            //     color: const Color.fromRGBO(
+                                            //       0,
+                                            //       140,
+                                            //       192,
+                                            //       1,
+                                            //     ),
+                                            //   ),
+                                            // ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Delivered Items',
@@ -294,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-              
+
                               // RIGHT: Total Received Items
                               Expanded(
                                 child: Container(
@@ -306,7 +353,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color.fromRGBO(0, 140, 192, 1),
+                                      color: const Color.fromRGBO(
+                                        0,
+                                        140,
+                                        192,
+                                        1,
+                                      ),
                                     ),
                                   ),
                                   child: Row(
@@ -316,21 +368,62 @@ class _HomeScreenState extends State<HomeScreen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              _dashboardLoading
-                                                  ? '—'
-                                                  : totalReceivedItems.toString(),
-                                              style: GoogleFonts.inter(
-                                                fontSize: isMobile ? 28 : 32,
-                                                fontWeight: FontWeight.bold,
-                                                color: const Color.fromRGBO(
-                                                  0,
-                                                  140,
-                                                  192,
-                                                  1,
-                                                ),
-                                              ),
-                                            ),
+                                            _dashboardLoading
+                                                ? Text(
+                                                    '—',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: isMobile
+                                                          ? 28
+                                                          : 32,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                            0,
+                                                            140,
+                                                            192,
+                                                            1,
+                                                          ),
+                                                    ),
+                                                  )
+                                                : Countup(
+                                                    begin: 0,
+                                                    end: totalReceivedItems
+                                                        .toDouble(),
+                                                    duration: const Duration(
+                                                      seconds: 2,
+                                                    ),
+                                                    curve: Curves.easeOutCubic,
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: isMobile
+                                                          ? 28
+                                                          : 32,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          const Color.fromRGBO(
+                                                            0,
+                                                            140,
+                                                            192,
+                                                            1,
+                                                          ),
+                                                    ),
+                                                  ),
+                                            // Text(
+                                            //   _dashboardLoading
+                                            //       ? '—'
+                                            //       : totalReceivedItems.toString(),
+                                            //   style: GoogleFonts.inter(
+                                            //     fontSize: isMobile ? 28 : 32,
+                                            //     fontWeight: FontWeight.bold,
+                                            //     color: const Color.fromRGBO(
+                                            //       0,
+                                            //       140,
+                                            //       192,
+                                            //       1,
+                                            //     ),
+                                            //   ),
+                                            // ),
                                             const SizedBox(height: 6),
                                             Text(
                                               'Received Items',
@@ -353,14 +446,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ],
                           ),
-              
+
                           SizedBox(height: sectionGap),
                           _buildProductsTable(),
-              
+
                           SizedBox(height: sectionGap),
                           const Divider(height: 1, color: Color(0xFFE0E0E0)),
                           SizedBox(height: sectionGap),
-              
+
                           Text(
                             'Customers',
                             style: GoogleFonts.inter(
@@ -381,7 +474,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : null,
                             child: Container(
                               height: isMobile ? 56 : 64,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(cardRadius),
                                 border: Border.all(
@@ -389,7 +484,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Flexible(
                                     child: FittedBox(
@@ -404,7 +500,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Text(
                                             _dashboardLoading
                                                 ? '—'
-                                                : (_dashboardData?.totalCustomers
+                                                : (_dashboardData
+                                                          ?.totalCustomers
                                                           .toString() ??
                                                       '0'),
                                             style: GoogleFonts.inter(
@@ -438,11 +535,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
-              
+
                           SizedBox(height: sectionGap),
                           const Divider(height: 1, color: Color(0xFFE0E0E0)),
                           SizedBox(height: sectionGap),
-              
+
                           if ((!isAdmin && canManageChallan) || isAdmin)
                             Text(
                               'Orders/Challans',
@@ -462,8 +559,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       setState(() => _isNavigating = true);
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (_) =>
-                                              ViewChallanScreen(type: "received"),
+                                          builder: (_) => ViewChallanScreen(
+                                            type: "received",
+                                          ),
                                         ),
                                       );
                                       if (mounted) {
@@ -473,7 +571,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: _buildOrderCard(
                                       _dashboardLoading
                                           ? '—'
-                                          : (_dashboardData?.totalReceivedChallans
+                                          : (_dashboardData
+                                                    ?.totalReceivedChallans
                                                     .toString() ??
                                                 '0'),
                                       'Received',

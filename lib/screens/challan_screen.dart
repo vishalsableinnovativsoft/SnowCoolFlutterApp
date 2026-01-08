@@ -39,9 +39,6 @@ class _ChallanScreenState extends State<ChallanScreen> {
   late final TextEditingController dateController;
   final TextEditingController purchaseOrderNoController =
       TextEditingController();
-  // final TextEditingController depositeController = TextEditingController();
-  // final TextEditingController returnedAmountController =
-  // TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController deliveryDetailsController =
       TextEditingController();
@@ -76,8 +73,6 @@ class _ChallanScreenState extends State<ChallanScreen> {
   bool _saving = false;
 
   double? remaining;
-  // double _alreadyReturnedFromDelivered = 0.0;
-  // List<String> _receivedChallanNos = [];
 
   @override
   void initState() {
@@ -103,6 +98,22 @@ class _ChallanScreenState extends State<ChallanScreen> {
     if (_challanId != null) {
       _loadChallanForEdit();
     }
+  }
+
+  @override
+  void dispose() {
+    customerNameController.dispose();
+    locationController.dispose();
+    transporterController.dispose();
+    vehicleDriverDetailsController.dispose();
+    vehicleNumberController.dispose();
+    dateController.dispose();
+    purchaseOrderNoController.dispose();
+    amountController.dispose();
+    deliveryDetailsController.dispose();
+    depositeNarrationController.dispose();
+    _removeOverlay();
+    super.dispose();
   }
 
   Future<void> _loadGoods() async {
@@ -165,19 +176,6 @@ class _ChallanScreenState extends State<ChallanScreen> {
         if (driverNumber.isNotEmpty) driverNumber,
       ].join(' - ');
 
-      double liveBalance = 0.0;
-      try {
-        liveBalance =
-            await _customerApi.getCustomerPreviousBalance(
-              selectedCustomerId!,
-              context,
-            ) ??
-            0.0;
-      } catch (e) {
-        liveBalance = 0.0;
-      }
-     
-
       setState(() {
         selectedCustomerId = data['customerId'];
         _originalCustomerId = selectedCustomerId;
@@ -196,8 +194,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
         // amountController.text = data['returnedAmount'].toString();
         deliveryDetailsController.text = data['deliveryDetails'] ?? '';
         depositeNarrationController.text = data['depositeNarration'] ?? '';
-        // remaining = data['deposite'] ?? 0.0;
-         remaining = liveBalance;
+        remaining = data['runningBalance'] ?? 0.0;
 
         log(data.toString());
 
@@ -1972,26 +1969,10 @@ class _ChallanScreenState extends State<ChallanScreen> {
       selectedCustomerId = customer.id;
       customerNameController.text = customer.name;
       _originalCustomerId = customer.id;
-      // remaining = customer.deposite ?? 0;
+      remaining = customer.runningBalance;
     });
 
     _removeOverlay();
-
-    double previousBalance = 0.0;
-    try {
-      setState(() => _loading = true);
-      previousBalance =
-          await _customerApi.getCustomerPreviousBalance(customer.id, context) ??
-          0.0;
-    } catch (e) {
-      previousBalance = 0.0;
-      debugPrint("Failed to load previous balance: $e");
-    }
-
-    setState(() {
-      remaining = previousBalance;
-      _loading = false;
-    });
 
     if (isReceivedChallan) {
       setState(() => _loading = true);
@@ -2040,11 +2021,6 @@ class _ChallanScreenState extends State<ChallanScreen> {
           })
           .where((item) => item['goods'] != null)
           .toList();
-
-      // showSuccessToast(
-      //   context,
-      //   "Pending items loaded. Tap 'Insert Products' to add.",
-      // );
     }
   }
 }

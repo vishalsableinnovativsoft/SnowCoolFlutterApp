@@ -46,8 +46,8 @@ class PassbookApi {
   Future<Map<String, dynamic>> fetchPassbookPage({
     required BuildContext context,
     int? customerId,
-    int page = 0,
-    int size = 7,
+    required int page,
+    required int size,
     String? search,
     String? poSearch,
     String? fromDate,
@@ -214,7 +214,7 @@ class PassbookApi {
     DateTime? fromDate,
     DateTime? toDate,
     int page = 0,
-    int size = 7,
+    required int size,
   }) async {
     // ──────────────────────────────────────
     // Build query parameters
@@ -360,8 +360,8 @@ class PassbookApi {
   Future<Map<String, dynamic>> searchPassbook({
     required BuildContext context,
     required String query,
-    int page = 0,
-    int size = 7,
+    required page,
+    required int size,
   }) async {
     final trimmedQuery = query.trim();
 
@@ -523,8 +523,8 @@ class PassbookApi {
   Future<Map<String, dynamic>> searchByPoOrSite({
     required BuildContext context,
     required String query,
-    int page = 0,
-    int size = 7,
+    required int page,
+    required int size,
   }) async {
     final trimmedQuery = query.trim();
 
@@ -661,116 +661,6 @@ class PassbookApi {
       };
     }
   }
-
-  // Future<Map<String, dynamic>> getPassbookByProductName({
-  //   required BuildContext context,
-  //   required String itemName,
-  //   int page = 0,
-  //   int size = 7,
-  //   DateTime? fromDate,
-  //   DateTime? toDate,
-  // }) async {
-  //   final Map<String, String> params = {
-  //     'page': page.toString(),
-  //     'size': size.toString(),
-  //     'itemName': itemName.trim(),
-  //     if (fromDate != null)
-  //       'fromDate': DateFormat('yyyy-MM-dd').format(fromDate),
-  //     if (toDate != null) 'toDate': DateFormat('yyyy-MM-dd').format(toDate),
-  //   };
-
-  //   final uri = Uri.parse(
-  //     '$baseUrl/api/v1/challans/passbook',
-  //   ).replace(queryParameters: params);
-
-  //   try {
-  //     final response = await http
-  //         .get(uri, headers: _getHeaders())
-  //         .timeout(const Duration(seconds: 25));
-
-  //     if (response.statusCode >= 200 && response.statusCode < 300) {
-  //       final Map<String, dynamic> json = jsonDecode(response.body);
-  //       final List<dynamic> content = json['content'] ?? [];
-
-  //       // Reuse the same transformation logic as searchUnified
-  //       final List<Map<String, dynamic>> transformed = content.map((item) {
-  //         final itemsList = (item['items'] as List?) ?? [];
-  //         final totalDelivered = itemsList.fold<int>(
-  //           0,
-  //           (s, i) => s + ((i['deliveredQty'] as num?)?.toInt() ?? 0),
-  //         );
-  //         final totalReceived = itemsList.fold<int>(
-  //           0,
-  //           (s, i) => s + ((i['receivedQty'] as num?)?.toInt() ?? 0),
-  //         );
-
-  //         final List<Map<String, dynamic>> productSrList = itemsList.map((i) {
-  //           final List<String> srList =
-  //               (i['srNo'] as List?)?.cast<String>() ?? [];
-  //           final String productName =
-  //               i['name']?.toString() ?? 'Unknown Product';
-  //           return {
-  //             'productName': productName,
-  //             'srNos': srList,
-  //             'srNoJoined': srList.join('/'),
-  //           };
-  //         }).toList();
-
-  //         final productType = itemsList.map((i) {
-  //           final String productName =
-  //               i['name']?.toString() ?? 'Unknown Product';
-  //           return {'productName': productName};
-  //         }).toList();
-  //         log("product type : $productType");
-
-  //         return {
-  //           'id': item['id'] ?? '',
-  //           'customerId': item['customerId'] ?? '',
-  //           'challanNumber': item['challanNumber'] ?? 'CH-${item['id']}',
-  //           'productType': productSrList
-  //               .map((p) => p['productName'] as String)
-  //               .toSet() // optional: remove duplicates
-  //               .toList(),
-  //           'purchaseOrderNo': item['purchaseOrderNo'] ?? '',
-  //           'siteLocation': item['siteLocation'] ?? '',
-  //           'customerName': item['customerName'] ?? 'Unknown',
-  //           'receivedChallanNos': item['receivedChallanNos'] ?? '',
-  //           'srNo': productSrList
-  //               .expand((p) => p['srNos'] as List<String>)
-  //               .join('/'),
-  //           'product_sr_details': productSrList,
-  //           'date': item['date'] ?? '',
-  //           'delivered': totalDelivered,
-  //           'received': totalReceived,
-  //           'deposite': (item['deposite'] as num?)?.toDouble() ?? 0.0,
-  //           'returnedAmount':
-  //               (item['returnedAmount'] as num?)?.toDouble() ?? 0.0,
-  //           'raw': item,
-  //         };
-  //       }).toList();
-
-  //       return {
-  //         'content': transformed,
-  //         'totalPages': json['totalPages'] ?? 1,
-  //         'totalElements': json['totalElements'] ?? 0,
-  //         'number': json['number'] ?? page,
-  //         'size': json['size'] ?? size,
-  //         'last': json['last'] ?? true,
-  //       };
-  //     }
-
-  //     final errorMsg = response.body.isNotEmpty
-  //         ? (jsonDecode(response.body)['message'] ?? response.body)
-  //         : "No results found";
-  //     if (context.mounted) showErrorToast(context, errorMsg);
-
-  //     return _emptyPage(page, size);
-  //   } catch (e) {
-  //     debugPrint("getPassbookByProductName error: $e");
-  //     if (context.mounted) showErrorToast(context, "Network error");
-  //     return _emptyPage(page, size);
-  //   }
-  // }
 
   /// Get total count of all delivered challans
   Future<int> getTotalDeliveredCount({required BuildContext context}) async {
@@ -1504,56 +1394,122 @@ class PassbookApi {
   }
 
   Future<void> sharePassBookByGoods({
-  required BuildContext context,
-  required int customerId,
-  required String customerName,
-  required String itemName,
-}) async {
+    required BuildContext context,
+    required int customerId,
+    required String customerName,
+    required String itemName,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$baseUrl/api/v1/challans/pdf/item?customerId=$customerId&itemName=${Uri.encodeComponent(itemName)}',
+      );
 
-  try {
-    final uri = Uri.parse(
-      '$baseUrl/api/v1/challans/pdf/item?customerId=$customerId&itemName=${Uri.encodeComponent(itemName)}',
-    );
+      final response = await http
+          .get(uri, headers: _headers)
+          .timeout(const Duration(seconds: 40));
 
-    final response = await http
-        .get(
-          uri,
-          headers: _headers,
-        )
-        .timeout(const Duration(seconds: 40));
+      if (response.statusCode != 200) {
+        showErrorToast(context, "PDF not available for this item");
+        debugPrint("PDF Error ${response.statusCode}: ${response.body}");
+        return;
+      }
 
-    if (response.statusCode != 200) {
-      showErrorToast(context, "PDF not available for this item");
-      debugPrint("PDF Error ${response.statusCode}: ${response.body}");
-      return;
+      final bytes = response.bodyBytes;
+
+      if (bytes.isEmpty || bytes.length < 1000) {
+        showErrorToast(context, "No PDF generated for this item yet");
+        return;
+      }
+
+      // Safe filename using only itemName
+      final safeItemName = itemName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+      final fileName = 'SnowCool_${customerName}_$safeItemName.pdf';
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      debugPrint("PDF saved: ${file.path}");
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Item Passbook - $itemName - Snow Cool Trading',
+        subject: 'Item Passbook - $itemName',
+      );
+    } catch (e, s) {
+      debugPrint("Share failed: $e\n$s");
+      showErrorToast(context, "Failed to share PDF");
     }
-
-    final bytes = response.bodyBytes;
-
-    if (bytes.isEmpty || bytes.length < 1000) {
-      showErrorToast(context, "No PDF generated for this item yet");
-      return;
-    }
-
-    // Safe filename using only itemName
-    final safeItemName = itemName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-    final fileName = 'SnowCool_${customerName}_$safeItemName.pdf';
-
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$fileName');
-    await file.writeAsBytes(bytes);
-
-    debugPrint("PDF saved: ${file.path}");
-
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Item Passbook - $itemName - Snow Cool Trading',
-      subject: 'Item Passbook - $itemName',
-    );
-  } catch (e, s) {
-    debugPrint("Share failed: $e\n$s");
-    showErrorToast(context, "Failed to share PDF");
   }
-}
 
+  Future<void> shareExcelByGoods({
+    required BuildContext context,
+    required int customerId,
+    required String customerName,
+    required String itemName,
+    String? authToken, // Optional Bearer token if your API requires it
+  }) async {
+    try {
+      // Build the URI with query parameters
+      final uri = Uri.parse(
+        '$baseUrl/api/v1/challans/excel/item?customerId=$customerId&itemName=${Uri.encodeComponent(itemName)}',
+      );
+
+      // Headers (same as your PDF function)
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        ..._headers, // Reuse your existing _headers map if it already contains common headers
+      };
+
+      if (authToken != null && authToken.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $authToken';
+      }
+
+      // Make the GET request using http (consistent with PDF version)
+      final response = await http
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 40));
+
+      // Check status
+      if (response.statusCode != 200) {
+        showErrorToast(context, "Excel not available for this item");
+        debugPrint("Excel Error ${response.statusCode}: ${response.body}");
+        return;
+      }
+
+      final bytes = response.bodyBytes;
+
+      // Basic validation – Excel files are usually > 5KB
+      if (bytes.isEmpty || bytes.length < 1000) {
+        showErrorToast(context, "No Excel data generated for this item yet");
+        return;
+      }
+
+      // Safe filename (remove invalid characters)
+      final safeCustomerName = customerName.replaceAll(
+        RegExp(r'[<>:"/\\|?*]'),
+        '_',
+      );
+      final safeItemName = itemName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+
+      final fileName = 'SnowCool_${safeCustomerName}_$safeItemName.xlsx';
+
+      // Save to temporary directory
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      debugPrint("Excel saved: ${file.path}");
+
+      // Share using share_plus
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Challan Statement - $itemName - Snow Cool Trading',
+        subject: 'Challan Excel Report - $itemName',
+      );
+    } catch (e, s) {
+      debugPrint("Excel share failed: $e\n$s");
+      showErrorToast(context, "Failed to share Excel file");
+    }
+  }
 }

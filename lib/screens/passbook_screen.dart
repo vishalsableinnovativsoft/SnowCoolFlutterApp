@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/models/passbook_product_model.dart';
-import 'package:snow_trading_cool/screens/passbookbygoods.dart';
+import 'package:snow_trading_cool/screens/viewpassbookbygoods.dart';
 import 'package:snow_trading_cool/screens/home_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:snow_trading_cool/services/customer_api.dart';
@@ -311,6 +311,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
   @override
   void dispose() {
     customerNameController?.dispose();
+    _removeOverlay();
     super.dispose();
   }
 
@@ -384,18 +385,16 @@ class _PassBookScreenState extends State<PassBookScreen> {
               borderSide: BorderSide(color: Colors.red),
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
-            suffixIcon: _isSearching
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.accentBlue,
-                    ),
-                  )
+            suffixIcon: AnimatedSwitcher(duration: const Duration(milliseconds: 200), child :_isSearching
+                ? CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.accentBlue,
+                )
                 : const Icon(Icons.search, color: Colors.grey),
+            ),
           ),
         ),
+
       ],
     );
   }
@@ -537,7 +536,7 @@ class _PassBookScreenState extends State<PassBookScreen> {
     setState(() {
       customerNameController!.text = customer.name;
       selectedCustomerId = customer.id;
-      balance = customer.deposite;
+      balance = customer.runningBalance;
     });
     _fetchPassbookProducts();
     //  Navigator.pop(context);

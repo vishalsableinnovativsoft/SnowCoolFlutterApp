@@ -46,7 +46,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   DateTime? _toDate;
   List<String> _selectedIds = [];
   int _currentPage = 0;
-  final int _rowsPerPage = 8;
+  final int _rowsPerPage = 10;
 
   String? challanCreateType;
   bool challanCreateSelected = true;
@@ -1140,23 +1140,22 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   @override
   Widget build(BuildContext context) {
     bool isAdmin = _userRole == 'ADMIN';
-     final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.of(context).size.width;
 
-    // 🔹 Breakpoints
     final bool isMobile = width < 600;
     final bool isTablet = width >= 600 && width < 1024;
     final bool isDesktop = width >= 1024;
 
     late final dynamic nameWidth;
     late final dynamic challanWidth;
-     late final dynamic typeWidth;
+    late final dynamic typeWidth;
     late final dynamic locationWidth;
     late final dynamic qtyWidth;
     late final dynamic dateWidth;
     late final dynamic createdByWidth;
     late final dynamic actionsWidth;
 
-    if (isMobile){
+    if (isMobile) {
       nameWidth = (width * 0.55).clamp(150, 250);
       challanWidth = width * 0.37;
       typeWidth = width * 0.18;
@@ -1165,7 +1164,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
       dateWidth = width * 0.25;
       createdByWidth = width * 0.3;
       actionsWidth = width * 0.8;
-    } else if (isTablet){
+    } else if (isTablet) {
       nameWidth = (width * 0.4).clamp(150, 350);
       challanWidth = width * 0.18;
       typeWidth = width * 0.15;
@@ -1323,7 +1322,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-              
+
                                   Stack(
                                     children: [
                                       SizedBox(
@@ -1333,12 +1332,12 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                           onPressed: () =>
                                               _showFiltersBottomSheet(),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.accentBlue,
+                                            backgroundColor:
+                                                AppColors.accentBlue,
                                             padding: EdgeInsets.zero,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(
-                                                16,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
                                           ),
                                           child: const Icon(
@@ -1375,9 +1374,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                             ],
                           ),
                         ),
-              
+
                         LayoutBuilder(
-                          
                           builder: (context, constraints) {
                             final screenWidth = constraints.maxWidth;
                             // final double nameWidth = (screenWidth * 0.5)
@@ -1392,7 +1390,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                             return _filteredData.isEmpty && !_isLoading
                                 ? Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.receipt_long_outlined,
@@ -1456,8 +1455,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                                     FontWeight
                                                                         .bold,
                                                                 fontSize: 14,
-                                                                color:
-                                                                    Colors.white,
+                                                                color: Colors
+                                                                    .white,
                                                               ),
                                                         ),
                                                       ],
@@ -1468,7 +1467,9 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                             ),
                                             ..._paginatedCustomers.map((row) {
                                               final isSelected = _selectedIds
-                                                  .contains(row['id'].toString());
+                                                  .contains(
+                                                    row['id'].toString(),
+                                                  );
                                               return Container(
                                                 height: 50,
                                                 decoration: BoxDecoration(
@@ -1477,7 +1478,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                       : null,
                                                   border: Border(
                                                     bottom: BorderSide(
-                                                      color: Colors.grey.shade300,
+                                                      color:
+                                                          Colors.grey.shade300,
                                                     ),
                                                   ),
                                                 ),
@@ -1526,14 +1528,13 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                           ],
                                         ),
                                       ),
-              
+
                                       Expanded(
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
                                           child: ConstrainedBox(
                                             constraints: BoxConstraints(
-                                              minWidth:
-                                                  screenWidth - nameWidth,
+                                              minWidth: screenWidth - nameWidth,
                                             ),
                                             child: SizedBox(
                                               width:
@@ -1543,7 +1544,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                   qtyWidth +
                                                   dateWidth +
                                                   createdByWidth +
-                                                  actionsWidth+35, //900,
+                                                  actionsWidth +
+                                                  35, //900,
                                               child: Column(
                                                 children: [
                                                   Container(
@@ -1587,21 +1589,20 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                           child: Center(
                                                             child: Text(
                                                               'Actions',
-                                                              style:
-                                                                  GoogleFonts.inter(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .white,
-                                                                  ),
+                                                              style: GoogleFonts.inter(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
-              
+
                                                   ..._paginatedCustomers.map((
                                                     row,
                                                   ) {
@@ -1613,16 +1614,20 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                         safeChallanType(row) ==
                                                             'DELIVERED'
                                                         ? 'Delivered'
-                                                        : safeChallanType(row) ==
+                                                        : safeChallanType(
+                                                                row,
+                                                              ) ==
                                                               'RECEIVED'
                                                         ? 'Received'
                                                         : 'N/A';
-              
+
                                                     return Container(
                                                       height: 50,
                                                       decoration: BoxDecoration(
                                                         color: isSelected
-                                                            ? Colors.blue.shade50
+                                                            ? Colors
+                                                                  .blue
+                                                                  .shade50
                                                             : null,
                                                         border: Border(
                                                           bottom: BorderSide(
@@ -1668,7 +1673,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                             ),
                                                           ),
                                                           SizedBox(
-                                                            width: locationWidth,
+                                                            width:
+                                                                locationWidth,
                                                             // width: 200,
                                                             child: Center(
                                                               child: Text(
@@ -1689,8 +1695,9 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                                 row['qty']
                                                                         ?.toString() ??
                                                                     '0',
-                                                                     overflow: TextOverflow
-                                                              .ellipsis,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
                                                               ),
                                                             ),
                                                           ),
@@ -1702,14 +1709,16 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                                 row['date']
                                                                         ?.toString() ??
                                                                     'N/A',
-                                                                     overflow: TextOverflow
-                                                              .ellipsis,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
                                                               ),
                                                             ),
                                                           ),
                                                           SizedBox(
                                                             // width: 150,
-                                                            width: createdByWidth,
+                                                            width:
+                                                                createdByWidth,
                                                             child: Center(
                                                               child: Text(
                                                                 row['createdBy'] ??
@@ -1805,15 +1814,13 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                                       'Download & View PDF',
                                                                   onPressed: () async {
                                                                     setState(
-                                                                      () =>
-                                                                          _isLoading =
-                                                                              true,
+                                                                      () => _isLoading =
+                                                                          true,
                                                                     );
                                                                     try {
                                                                       final id =
                                                                           int.tryParse(
-                                                                            row['id']
-                                                                                .toString(),
+                                                                            row['id'].toString(),
                                                                           ) ??
                                                                           0;
                                                                       if (id <=
@@ -1831,7 +1838,9 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                                                         context:
                                                                             context,
                                                                       );
-                                                                    } catch (e) {
+                                                                    } catch (
+                                                                      e
+                                                                    ) {
                                                                       showErrorToast(
                                                                         context,
                                                                         "Failed to load PDF",
@@ -1864,40 +1873,199 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                       ],
                     ),
                   ),
+
                   Container(
                     color: const Color(0xFFB3E0F2),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Row(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    child:
+                    
+                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // Previous button
                         IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_rounded),
+                          color: _currentPage > 0
+                              ? Colors.blue[800]
+                              : Colors.grey,
                           onPressed: _currentPage > 0
                               ? () {
-                                  setState(() => _currentPage--);
-                                  _fetchChallans();
+                                  setState(() {
+                                    _currentPage--;
+                                    _fetchChallans();
+                                  });
                                 }
                               : null,
-                          icon: Icon(Icons.arrow_back_ios),
                         ),
-                        Text('Page ${_currentPage + 1} of $_totalPages'),
-              
+
+                        // Page numbers with ellipsis
+                        ..._buildPageNumbers(isMobile: isMobile),
+
+                        // Next button
                         IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios_rounded),
+                          color: _currentPage < _totalPages - 1
+                              ? Colors.blue[800]
+                              : Colors.grey,
                           onPressed: _currentPage < _totalPages - 1
                               ? () {
-                                  setState(() => _currentPage++);
-                                  _fetchChallans();
+                                  setState(() {
+                                    _currentPage++;
+                                    _fetchChallans();
+                                  });
                                 }
                               : null,
-                          icon: Icon(Icons.arrow_forward_ios),
                         ),
                       ],
                     ),
+               
+               
                   ),
+                  // Container(
+                  //   color: const Color(0xFFB3E0F2),
+                  //   padding: const EdgeInsets.symmetric(vertical: 10),
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     children: [
+                  //       IconButton(
+                  //         onPressed: _currentPage > 0
+                  //             ? () {
+                  //                 setState(() => _currentPage--);
+                  //                 _fetchChallans();
+                  //               }
+                  //             : null,
+                  //         icon: Icon(Icons.arrow_back_ios),
+                  //       ),
+                  //       Text('Page ${_currentPage + 1} of $_totalPages'),
+
+                  //       IconButton(
+                  //         onPressed: _currentPage < _totalPages - 1
+                  //             ? () {
+                  //                 setState(() => _currentPage++);
+                  //                 _fetchChallans();
+                  //               }
+                  //             : null,
+                  //         icon: Icon(Icons.arrow_forward_ios),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                 ],
               ),
             ),
             if (_isLoading) customLoader(),
           ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildPageNumbers({required bool isMobile}) {
+    List<Widget> pages = [];
+
+     int delta =  isMobile ? 0 :
+        1; // ← This controls how many pages on each side of current
+    // delta = 2 → total 5 pages in middle (2 left + current + 2 right)
+
+    if (_totalPages <= delta * 2 + 3) {
+      // If total pages are small enough, show all pages (no ellipsis needed)
+      for (int i = 1; i <= _totalPages; i++) {
+        pages.add(_pageButton(i, i == _currentPage + 1));
+      }
+    } else {
+      // Always show page 1
+      pages.add(_pageButton(1, _currentPage == 0));
+
+      // Calculate the range around current page
+      int left = _currentPage - delta + 1; // +1 because pages are 1-based
+      int right = _currentPage + delta + 1;
+
+      // Adjust when near the beginning
+      if (left < 2) {
+        right += (2 - left);
+        left = 2;
+      }
+
+      // Adjust when near the end
+      if (right > _totalPages - 1) {
+        left -= (right - (_totalPages - 1));
+        right = _totalPages - 1;
+      }
+      if (left < 2) left = 2;
+
+      // Ellipsis after page 1
+      if (left > 2) {
+        pages.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '...',
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        );
+      }
+
+      // Middle 5 pages
+      for (int i = left; i <= right; i++) {
+        pages.add(_pageButton(i, i == _currentPage + 1));
+      }
+
+      // Ellipsis before last page
+      if (right < _totalPages - 1) {
+        pages.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '...',
+              style: TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+          ),
+        );
+      }
+
+      // Always show last page
+      if (_totalPages > 1) {
+        pages.add(_pageButton(_totalPages, _currentPage == _totalPages - 1));
+      }
+    }
+
+    return pages;
+  }
+
+  Widget _pageButton(int pageNum, bool isCurrent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: isCurrent
+            ? null
+            : () {
+                setState(() {
+                  _currentPage = pageNum - 1;
+                  _fetchChallans();
+                });
+              },
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isCurrent ? Colors.blue[800] : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: isCurrent ? null : Border.all(color: Colors.blue[800]!),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$pageNum',
+            style: TextStyle(
+              color: isCurrent ? Colors.white : Colors.blue[800],
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
         ),
       ),
     );

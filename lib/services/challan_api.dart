@@ -641,7 +641,7 @@ class ChallanApi {
           'challanType': data['challanType'],
           'items': data['items'] ?? [],
           'purchaseOrderNo': data['purchaseOrderNo'] ?? '',
-          'deposite': data['deposite'] ?? '',
+          'deposite': data['runningBalance'] ?? '',
           'deliveryDetails': data['deliveryDetails'] ?? '',
           'depositeNarration': data['depositeNarration'] ?? '',
           'returnedAmount': data['returnedAmount'] ?? '',
