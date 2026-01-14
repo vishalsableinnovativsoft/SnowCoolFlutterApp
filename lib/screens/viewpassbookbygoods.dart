@@ -1159,24 +1159,94 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
         size: _rowsPerPage,
       );
 
+      // final List<Map<String, dynamic>> rawContent =
+      //     List<Map<String, dynamic>>.from(result['content']);
+
+      // final List<Map<String, dynamic>> processed = rawContent.map((entry) {
+      //   final rawItem = entry['raw'] as Map<String, dynamic>;
+      //   final itemsList = (rawItem['items'] as List?) ?? [];
+      //   final item = itemsList.isNotEmpty
+      //       ? itemsList[0] as Map<String, dynamic>
+      //       : null;
+
+      //   return {
+      //     ...entry,
+      //     'openingBalance': item?['openingBalance'] ?? 0,
+      //     'closingBalance': item?['closingBalance'] ?? 0,
+      //   };
+      // }).toList();
+
+      // processed.sort((a, b) {
+      //   final dateA = DateTime.tryParse(a['date'] ?? '') ?? DateTime(1900);
+      //   final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(1900);
+      //   return dateA.compareTo(dateB);
+      // });
+
+      // log("Paginated Goods Passbook entries: $processed");
+
+      // if (mounted) {
+      //   setState(() {
+      //     _paginatedEntries = processed;
+      //     _totalPages = result['totalPages'] ?? 1;
+      //     _currentPage = result['number'] ?? 0;
+      //     _isLoading = false;
+      //   });
+      // }
+
       final List<Map<String, dynamic>> rawContent =
           List<Map<String, dynamic>>.from(result['content']);
 
-      final List<Map<String, dynamic>> processed = rawContent.map((entry) {
-        final rawItem = entry['raw'] as Map<String, dynamic>;
-        final itemsList = (rawItem['items'] as List?) ?? [];
-        final item = itemsList.isNotEmpty
-            ? itemsList[0] as Map<String, dynamic>
-            : null;
+      // Group by challanNumber (or challan id if available)
+      final Map<String, List<Map<String, dynamic>>> groupedByChallan = {};
 
-        return {
-          ...entry,
-          'openingBalance': item?['openingBalance'] ?? 0,
-          'closingBalance': item?['closingBalance'] ?? 0,
-        };
-      }).toList();
+      for (final entry in rawContent) {
+        final challanKey =
+            entry['challanNumber'] as String? ?? 'UNKNOWN_${entry['id']}';
 
-      processed.sort((a, b) {
+        groupedByChallan.putIfAbsent(challanKey, () => []).add(entry);
+      }
+
+      final List<Map<String, dynamic>> aggregated = [];
+
+      groupedByChallan.forEach((challanKey, entries) {
+
+        final parent = entries.first; // common fields
+
+        // Collect all items across all duplicate challan entries
+        final allItems = entries
+            .expand((e) => (e['raw']['items'] as List?) ?? [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+
+        if (allItems.isEmpty) return;
+
+        // Aggregate values
+        final firstOpening = allItems.first['openingBalance'] as num? ?? 0;
+        final lastClosing = allItems.last['closingBalance'] as num? ?? 0;
+
+        final totalDelivered = allItems.fold<num>(
+          0,
+          (sum, item) => sum + (item['deliveredQty'] as num? ?? 0),
+        );
+        final totalReceived = allItems.fold<num>(
+          0,
+          (sum, item) => sum + (item['receivedQty'] as num? ?? 0),
+        );
+
+        aggregated.add({
+          ...parent,
+          'openingBalance': firstOpening,
+          'closingBalance': lastClosing,
+          'delivered': totalDelivered,
+          'received': totalReceived,
+          // 'product_sr_details': mergedSrDetails, // keep for SR popup
+          // Optional: store count for display
+          'itemCount': allItems.length,
+        });
+      });
+
+      // Sort by date (important!)
+      aggregated.sort((a, b) {
         final dateA = DateTime.tryParse(a['date'] ?? '') ?? DateTime(1900);
         final dateB = DateTime.tryParse(b['date'] ?? '') ?? DateTime(1900);
         return dateA.compareTo(dateB);
@@ -1184,7 +1254,7 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
 
       if (mounted) {
         setState(() {
-          _paginatedEntries = processed;
+          _paginatedEntries = aggregated;
           _totalPages = result['totalPages'] ?? 1;
           _currentPage = result['number'] ?? 0;
           _isLoading = false;

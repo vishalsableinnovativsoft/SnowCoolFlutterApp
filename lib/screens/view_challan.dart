@@ -1172,7 +1172,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
       qtyWidth = width * 0.1;
       dateWidth = width * 0.12;
       createdByWidth = width * 0.2;
-      actionsWidth = width * 0.42;
+      actionsWidth = width * 0.4;
     } else {
       nameWidth = (width * 0.3).clamp(150, 400);
       challanWidth = width * 0.10;

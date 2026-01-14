@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(0, 140, 192, 1),
+        backgroundColor: AppColors.accentBlue,
         elevation: 0,
         leadingWidth: isMobile ? 44 : 48,
         titleSpacing: isMobile ? 6 : 8,
@@ -335,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       const Icon(
                                         Icons.outbox_rounded,
                                         size: 40,
-                                        color: Color.fromRGBO(0, 140, 192, 1),
+                                        color: AppColors.accentBlue,
                                       ),
                                     ],
                                   ),
@@ -438,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       const Icon(
                                         Icons.move_to_inbox_rounded,
                                         size: 40,
-                                        color: Color.fromRGBO(0, 140, 192, 1),
+                                        color: AppColors.accentBlue,
                                       ),
                                     ],
                                   ),
@@ -480,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(cardRadius),
                                 border: Border.all(
-                                  color: const Color.fromRGBO(0, 140, 192, 1),
+                                  color: AppColors.accentBlue,
                                 ),
                               ),
                               child: Row(
@@ -528,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   Icon(
                                     Icons.arrow_forward_ios,
-                                    color: const Color.fromRGBO(0, 140, 192, 1),
+                                    color: AppColors.accentBlue,
                                     size: iconSize,
                                   ),
                                 ],
@@ -793,7 +793,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: const Color.fromRGBO(0, 140, 192, 1)),
+        border: Border.all(color: AppColors.accentBlue,),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -811,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: GoogleFonts.inter(
                       fontSize: countSize,
                       fontWeight: FontWeight.bold,
-                      color: const Color.fromRGBO(0, 140, 192, 1),
+                      color: AppColors.accentBlue,
                     ),
                   ),
                   Text(
@@ -827,7 +827,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Icon(
             Icons.arrow_forward_ios,
-            color: const Color.fromRGBO(0, 140, 192, 1),
+            color: AppColors.accentBlue,
             size: isMobile ? 16 : 18,
           ),
         ],
