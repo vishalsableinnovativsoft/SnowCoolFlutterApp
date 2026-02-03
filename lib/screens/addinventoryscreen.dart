@@ -261,7 +261,7 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
                             flex: 3,
                             child: Text("Product Name", style: TextStyle(fontWeight: FontWeight.w600)),
                           ),
-                          if(isAdmin)
+                       if (isAdmin && _filteredGoods.any((p) => p.id != null && p.id! >= 5))
                           SizedBox(
                             width: 100,
                             child: Text("Action", style: TextStyle(fontWeight: FontWeight.w600)),
@@ -306,7 +306,7 @@ class _AddinventoryscreenState extends State<Addinventoryscreen> {
                                     ),
                                   ),
                                 ),
-                                if(isAdmin)
+                                if(isAdmin && (product.id! > 5))
                                 SizedBox(
                                   width: 130,
                                   child: Row(

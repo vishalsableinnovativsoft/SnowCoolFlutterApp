@@ -24,6 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userRole = 'Employee';
   ImageProvider? _logoImage;
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSearchExpanded = false;
+
   // List<GoodsDTO> _allGoods = [];
   // bool _goodsLoading = true;
 
@@ -46,18 +50,20 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isAdmin || canManageSettings) _loadAppSettingsLogo();
   }
 
-  // Future<void> _loadGoods() async {
-  //   setState(() => _goodsLoading = true);
-  //   try {
-  //     final goods = await _api.getAllGoods();
-  //     setState(() {
-  //       _allGoods = goods;
-  //       _goodsLoading = false;
-  //     });
-  //   } catch (e) {
-  //     setState(() => _goodsLoading = false);
-  //   }
-  // }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearchExpanded = !_isSearchExpanded;
+      if (!_isSearchExpanded) {
+        _searchController.clear(); // optional: clear when collapsing
+      }
+    });
+  }
 
   Future<void> _loadDashboardData() async {
     try {
@@ -226,15 +232,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: verticalGap),
-                          Text(
-                            'Total Inventory',
-                            style: GoogleFonts.inter(
-                              fontSize: titleFontSize,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF515151),
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Total Inventory',
+                                  style: GoogleFonts.inter(
+                                    fontSize: titleFontSize,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF515151),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: verticalGap),
+                            ],
                           ),
-                          SizedBox(height: verticalGap),
+                          SizedBox(height: sectionGap),
 
                           Row(
                             children: [
@@ -479,9 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(cardRadius),
-                                border: Border.all(
-                                  color: AppColors.accentBlue,
-                                ),
+                                border: Border.all(color: AppColors.accentBlue),
                               ),
                               child: Row(
                                 mainAxisAlignment:
@@ -793,7 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: AppColors.accentBlue,),
+        border: Border.all(color: AppColors.accentBlue),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

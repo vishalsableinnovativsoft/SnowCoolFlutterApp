@@ -25,7 +25,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
   // final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
-  final _emailController = TextEditingController();
+  // final _emailController = TextEditingController();
+  final List<TextEditingController> _emailControllers = [];
   final _addressController = TextEditingController();
   final depositOpeningBalanceController = TextEditingController();
   bool _isLoading = false;
@@ -51,7 +52,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
   // Error messages state
   String? _nameError;
   String? _mobileError;
-  String? _emailError;
+  // String? _emailError;
+  final List<String?> _emailErrors = [];
   String? _addressError;
 
   @override
@@ -59,7 +61,10 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     depositOpeningBalanceController.dispose();
     _nameController.dispose();
     _mobileController.dispose();
-    _emailController.dispose();
+    // _emailControllers.clear();
+    for (var c in _emailControllers) {
+      c.dispose();
+    }
     _addressController.dispose();
     _qtyControllers.values.forEach((c) => c.dispose());
     super.dispose();
@@ -67,6 +72,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
 
   @override
   void initState() {
+    _addEmailField();
     super.initState();
 
     if (_isEditMode) {
@@ -74,8 +80,131 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     } else {
       _fetchGoods();
     }
+  }
 
-   
+  void _addEmailField({String initialValue = ''}) {
+    setState(() {
+      final controller = TextEditingController(text: initialValue);
+      _emailControllers.add(controller);
+      _emailErrors.add(null);
+
+      // Auto lowercase + validation on change
+      controller.addListener(() {
+        final value = controller.text.trim().toLowerCase();
+        if (controller.text != value) {
+          controller.value = TextEditingValue(
+            text: value,
+            selection: TextSelection.collapsed(offset: value.length),
+          );
+        }
+        _validateEmailAtIndex(_emailControllers.indexOf(controller));
+      });
+    });
+  }
+
+  void _removeEmailField(int index) {
+    if (_emailControllers.length <= 1) {
+      showErrorToast(context, "At least one email is required");
+      return;
+    }
+
+    setState(() {
+      _emailControllers[index].dispose();
+      _emailControllers.removeAt(index);
+      _emailErrors.removeAt(index);
+    });
+  }
+
+  void _validateEmailAtIndex(int index) {
+    final value = _emailControllers[index].text.trim();
+    String? error;
+
+    if (value.isEmpty) {
+      if (index == 0) {
+        error = 'Email is required';
+      }
+      // Additional emails can be empty → no error
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      error = 'Invalid email format';
+    } else {
+      // Check for duplicate
+      for (int i = 0; i < _emailControllers.length; i++) {
+        if (i == index) continue;
+        final other = _emailControllers[i].text.trim().toLowerCase();
+        if (other.isNotEmpty && other == value) {
+          error = 'Email already entered';
+          break;
+        }
+      }
+    }
+
+    if (_emailErrors[index] != error) {
+      setState(() {
+        _emailErrors[index] = error;
+      });
+    }
+  }
+
+  bool _hasDuplicateEmails() {
+    final emails = _emailControllers
+        .map((c) => c.text.trim().toLowerCase())
+        .where((email) => email.isNotEmpty)
+        .toList();
+
+    final seen = <String>{};
+    for (final email in emails) {
+      if (!seen.add(email)) {
+        return true; // duplicate found
+      }
+    }
+    return false;
+  }
+
+  bool _isFormValidRegardingEmails() {
+    if (_emailControllers.isEmpty) return false;
+
+    // Primary (first) email must exist and be valid
+    final primary = _emailControllers[0].text.trim();
+    if (primary.isEmpty ||
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(primary)) {
+      return false;
+    }
+
+    // All other emails (if filled) must be valid
+    for (int i = 1; i < _emailControllers.length; i++) {
+      final email = _emailControllers[i].text.trim();
+      if (email.isNotEmpty &&
+          !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _hasAtLeastOneValidEmail() {
+    // At least one email must be filled & valid
+    for (int i = 0; i < _emailControllers.length; i++) {
+      final email = _emailControllers[i].text.trim();
+      if (email.isNotEmpty &&
+          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _areAllEmailsValid() {
+    return _emailErrors.every((error) => error == null);
+  }
+
+  String _getJoinedEmails() {
+    final emails = _emailControllers
+        .map((c) => c.text.trim())
+        .where((email) => email.isNotEmpty)
+        .toList();
+
+    return emails.isEmpty ? '' : emails.join('/');
   }
 
   Future<void> _fetchCustomerDetails() async {
@@ -104,11 +233,28 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
 
         _nameController.text = customer.name;
         _mobileController.text = customer.contactNumber;
-        _emailController.text = customer.email ?? '';
+        // _emailController.text = customer.email ?? '';
+        final emailString = customer.email ?? '';
+        final emailList = emailString
+            .split('/')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
         _addressController.text = customer.address ?? '';
         depositOpeningBalanceController.text = (customer.deposite ?? 0.0)
             .toStringAsFixed(2);
         setReminder = customer.reminder ?? 'None';
+
+        _emailControllers.clear();
+        _emailErrors.clear();
+
+        if (emailList.isEmpty) {
+          _addEmailField();
+        } else {
+          for (var email in emailList) {
+            _addEmailField(initialValue: email);
+          }
+        }
 
         if (customer.items != null && customer.items!.isNotEmpty) {
           for (var item in customer.items!) {
@@ -185,14 +331,14 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     setState(() {
       _nameController.clear();
       _mobileController.clear();
-      _emailController.clear();
+      _emailControllers.clear();
       _addressController.clear();
       depositOpeningBalanceController.clear();
 
       setReminder = 'None';
 
-      _nameError = _mobileError = _emailError = _addressError = null;
-
+      _nameError = _mobileError = _addressError = null;
+      _emailErrors.fillRange(0, _emailErrors.length, null);
       for (var id in _qtyControllers.keys) {
         _qtyControllers[id]!.clear();
         _goodsQtyMap[id] = '';
@@ -217,28 +363,15 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     return null;
   }
 
-  // Email validator
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter email';
-    }
-    final email = value.trim();
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-      return 'Please enter a valid email address';
-    }
-    return null;
-  }
-
   // Auto-convert email to lowercase
   void _onEmailChanged(String value) {
     final lower = value.toLowerCase();
     if (value != lower) {
-      _emailController.value = TextEditingValue(
-        text: lower,
-        selection: TextSelection.collapsed(offset: lower.length),
-      );
-    }
-    _updateEmailError(lower);
+      // _emailController.value = TextEditingValue(
+      //   text: lower,
+      //   selection: TextSelection.collapsed(offset: lower.length),
+      // );
+    } // _updateEmailError(lower); // This line is no longer needed
   }
 
   void _updateNameError(String value) {
@@ -260,27 +393,10 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     });
   }
 
-  void _updateEmailError(String value) {
-    setState(() {
-      _emailError = _validateEmail(value);
-    });
-  }
-
   void _updateAddressError(String value) {
     setState(() {
       _addressError = value.trim().isEmpty ? 'Please enter address' : null;
     });
-  }
-
-  bool _isFormValid() {
-    return _nameError == null &&
-        _mobileError == null &&
-        _emailError == null &&
-        _addressError == null &&
-        _nameController.text.trim().isNotEmpty &&
-        _mobileController.text.trim().isNotEmpty &&
-        _emailController.text.trim().isNotEmpty &&
-        _addressController.text.trim().isNotEmpty;
   }
 
   Future<void> _submitCustomer() async {
@@ -295,7 +411,44 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
         _nameError = null;
       }
       _mobileError = _validateMobile(_mobileController.text);
-      _emailError = _validateEmail(_emailController.text);
+      for (int i = 0; i < _emailControllers.length; i++) {
+        _validateEmailAtIndex(i);
+      }
+
+      // if (!_areAllEmailsValid()) {
+      //   showErrorToast(context, "Please correct invalid email(s)");
+      //   return;
+      // }
+
+      for (int i = 0; i < _emailControllers.length; i++) {
+        _validateEmailAtIndex(i);
+      }
+
+      if (!_hasAtLeastOneValidEmail()) {
+        showErrorToast(context, "E-mail is required");
+
+        if (_emailControllers.isNotEmpty &&
+            _emailControllers[0].text.trim().isEmpty) {
+          setState(() {
+            _emailErrors[0] = 'Email is required';
+          });
+        }
+        return;
+      }
+
+      if (_hasDuplicateEmails()) {
+        showErrorToast(context, "Duplicate emails are not allowed");
+
+        // Optional: highlight all duplicate fields
+        for (int i = 0; i < _emailControllers.length; i++) {
+          final val = _emailControllers[i].text.trim().toLowerCase();
+          if (val.isNotEmpty) {
+            _validateEmailAtIndex(i); // re-run to show errors
+          }
+        }
+        return;
+      }
+
       _addressError = _addressController.text.trim().isEmpty
           ? 'Please enter address'
           : null;
@@ -304,7 +457,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     // If any required field has error → stop
     if (_nameError != null ||
         _mobileError != null ||
-        _emailError != null ||
+        _emailErrors.any((e) => e != null) || // Check all email errors
         _addressError != null) {
       showErrorToast(context, "Please fill all required fields");
       return;
@@ -313,8 +466,6 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Inside _submitCustomer() method, replace the goods preparation part with this:
-
       final List<Map<String, dynamic>> selectedGoods = [];
       for (var goods in allGoods) {
         final String id = goods.id.toString();
@@ -349,12 +500,15 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
 
       final String reminderType = setReminder ?? 'None';
 
+      final String joinedEmails = _getJoinedEmails();
+
       if (_isEditMode) {
         final response = await _api.updateCustomer(
           id: widget.customerId!,
           name: _nameController.text.trim(),
           contactNumber: _mobileController.text.trim(),
-          email: _emailController.text.trim(),
+          // email: _emailController.text.trim(),
+          email: joinedEmails,
           address: _addressController.text.trim(),
           reminder: reminderType,
           deposite: depositAmount,
@@ -374,7 +528,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
           context: context,
           name: _nameController.text.trim(),
           contactNumber: _mobileController.text.trim(),
-          email: _emailController.text.trim(),
+          // email: _emailController.text.trim(),
+          email: joinedEmails,
           address: _addressController.text.trim(),
           reminder: reminderType,
           deposite: depositAmount,
@@ -666,7 +821,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-            
+
                     // Name Field
                     _buildTextField(
                       label: 'Customer Name',
@@ -680,7 +835,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-            
+
                     // Mobile Field
                     _buildTextField(
                       label: 'Mobile',
@@ -693,14 +848,16 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                         final cleaned = value
                             .replaceAll(RegExp(r'\D'), '')
                             .replaceFirst(RegExp(r'^0+'), '');
-            
+
                         // Update error in real-time
                         setState(() {
                           if (cleaned.isEmpty) {
                             _mobileError = 'Please enter mobile number';
                           } else if (cleaned.length != 10) {
                             _mobileError = 'Mobile must be exactly 10 digits';
-                          } else if (!RegExp(r'^[5-9]\d{9}$').hasMatch(cleaned)) {
+                          } else if (!RegExp(
+                            r'^[5-9]\d{9}$',
+                          ).hasMatch(cleaned)) {
                             _mobileError = 'Must start with 5, 6, 7, 8 or 9';
                           } else {
                             _mobileError = null;
@@ -713,18 +870,97 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-            
-                    // Email Field
-                    _buildTextField(
-                      label: 'Email',
-                      controller: _emailController,
-                      icon: Icons.email,
-                      keyboardType: TextInputType.emailAddress,
-                      errorText: _emailError,
-                      onChanged: _onEmailChanged,
+
+                    // Email Field + Add button
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...List.generate(_emailControllers.length, (index) {
+                          return Column(
+                            children: [
+                              _buildTextField(
+                                label: index == 0
+                                    ? 'Email'
+                                    : 'Additional Email',
+                                controller: _emailControllers[index],
+                                icon: Icons.email,
+                                keyboardType: TextInputType.emailAddress,
+                                errorText: _emailErrors[index],
+                              ),
+                              if (_emailControllers.length > 1)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    onPressed: () => _removeEmailField(index),
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                      color: Colors.red,
+                                      size: 18,
+                                    ),
+                                    label: const Text(
+                                      "Remove",
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ),
+                              // const SizedBox(height: 8),
+                            ],
+                          );
+                        }),
+                        SizedBox(height: 8),
+
+                        // Add more email button
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: TextButton.icon(
+                            onPressed: _addEmailField,
+                            icon: const Icon(
+                              Icons.add_circle_outline,
+                              color: Colors.green,
+                            ),
+                            label: const Text(
+                              "Add another email",
+                              style: TextStyle(color: Colors.green),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.green),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-            
+
+                    // Email Field
+                    // _buildTextField(
+                    //   label: 'Email',
+                    //   controller: _emailController,
+                    //   icon: Icons.email,
+                    //   keyboardType: TextInputType.emailAddress,
+                    //   errorText: _emailError,
+                    //   onChanged: _onEmailChanged,
+                    // ),
+                    // Row(
+                    //   children: [
+                    //     const Spacer(),
+                    //     TextButton.icon(
+                    //       onPressed: () {},
+                    //       icon: const Icon(
+                    //         Icons.add_circle_outline,
+                    //         color: Colors.green,
+                    //         size: 20,
+                    //       ),
+                    //       label: const Text(
+                    //         "Add e-mail",
+                    //         style: TextStyle(
+                    //           decoration: TextDecoration.underline,
+                    //           color: Colors.green,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    // const SizedBox(height: 10),
+
                     // Address Field
                     _buildTextField(
                       label: 'Address',
@@ -735,7 +971,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                       onChanged: _updateAddressError,
                     ),
                     const SizedBox(height: 16),
-            
+
                     // Deposite opening balance
                     _buildTextField(
                       label: 'Deposit Opening Balance',
@@ -776,7 +1012,9 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                           SizedBox(
                             width: isMobile ? screenWidth * 0.4 : 200,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey.shade400),
                                 borderRadius: BorderRadius.circular(8),
@@ -813,11 +1051,11 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                         ],
                       ),
                     ),
-            
+
                     // Goods Selection Table
                     _buildGoodsSelectionTable(),
                     const SizedBox(height: 12),
-            
+
                     // Submit Button
                     Row(
                       children: [
@@ -865,7 +1103,9 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                               ),
                             ),
                             child: Text(
-                              _isEditMode ? 'Update Customer' : 'Create Customer',
+                              _isEditMode
+                                  ? 'Update Customer'
+                                  : 'Create Customer',
                               style: GoogleFonts.inter(
                                 fontSize: isMobile ? 16 : 18,
                                 fontWeight: FontWeight.w600,

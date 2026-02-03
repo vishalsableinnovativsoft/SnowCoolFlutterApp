@@ -74,7 +74,7 @@ class _UserCreateScreenState extends State<UserCreateScreen> {
       _fetchedUser = fetchedUser;
 
       _usernameController.text = fetchedUser.username;
-      _selectedRole = fetchedUser.role == 'ADMIN' ? 'Admin' : 'Employee';
+      _selectedRole = fetchedUser.role == 'Admin' ? 'Admin' : 'Employee';
       _active = fetchedUser.active;
 
       // Safely handle null permissions (as in your API response)

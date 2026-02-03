@@ -69,22 +69,6 @@ class CustomerDTO {
   }
 }
 
-// class CustomerResponse {
-//   final bool success;
-//   final String? message;
-//   final CustomerDTO? data;
-
-//   CustomerResponse({required this.success, this.message, this.data});
-
-//   factory CustomerResponse.fromJson(Map<String, dynamic> json) {
-//     return CustomerResponse(
-//       success: json['success'] == true || json['data'] != null,
-//       message: json['message']?.toString(),
-//       data: json['data'] != null ? CustomerDTO.fromJson(json['data']) : null,
-//     );
-//   }
-// }
-
 class CustomerResponse {
   final bool success;
   final String? message;

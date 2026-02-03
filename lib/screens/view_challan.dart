@@ -41,6 +41,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   List<Map<String, dynamic>> _filteredData = [];
 
   String _searchQuery = '';
+  String _searchSrQuery = '';
+  String _searchPoQuery = '';
   String _selectedType = 'All';
   DateTime? _fromDate;
   DateTime? _toDate;
@@ -379,6 +381,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
 
   bool _hasActiveFilters() {
     return _searchQuery.isNotEmpty ||
+        _searchPoQuery.isNotEmpty ||
+        _searchSrQuery.isNotEmpty ||
         _selectedType != 'All' ||
         _fromDate != null ||
         _toDate != null;
@@ -417,71 +421,43 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
     setState(() => _isLoading = true);
 
     try {
-      List<Map<String, dynamic>> result;
-
-      final bool hasSearch = _searchQuery.trim().isNotEmpty;
-      final bool hasDates = _fromDate != null || _toDate != null;
-      final String selectedTypeUpper = _selectedType.toUpperCase();
       final String? challanTypeParam = _selectedType == 'All'
           ? null
-          : selectedTypeUpper;
+          : _selectedType.toUpperCase();
+
       final String? fromDateStr = _fromDate != null
           ? DateFormat('yyyy-MM-dd').format(_fromDate!)
           : null;
+
       final String? toDateStr = _toDate != null
           ? DateFormat('yyyy-MM-dd').format(_toDate!)
           : null;
 
-      Map<String, dynamic>? response;
+      // ────────────────────────────────────────────────
+      //   Unified call — pass EVERY active filter
+      // ────────────────────────────────────────────────
+      final response = await challanApi.searchChallans(
+        query: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
+        srNoSearch: _searchSrQuery.trim().isNotEmpty
+            ? _searchSrQuery.trim()
+            : null,
+        poNoSearch: _searchPoQuery.trim().isNotEmpty
+            ? _searchPoQuery.trim()
+            : null,
+        challanType: challanTypeParam,
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+        page: _currentPage,
+        size: _rowsPerPage,
+      );
 
-      // CASE 1: User is searching (name/mobile/email)
-      if (hasSearch) {
-        // Use the new smart search API with all filters
-        response = await challanApi.searchChallans(
-          query: _searchQuery.trim(),
-          challanType: challanTypeParam,
-          fromDate: fromDateStr,
-          toDate: toDateStr,
-          page: _currentPage,
-          size: _rowsPerPage,
-        );
-      }
-      // CASE 2: No search, but has type filter only → use optimized endpoints
-      else if (!hasDates && _selectedType != 'All') {
-        if (_selectedType == 'Delivered') {
-          response = await challanApi.fetchDeliveredChallansPage(
-            page: _currentPage,
-            size: _rowsPerPage,
-          );
-        } else if (_selectedType == 'Received') {
-          response = await challanApi.fetchReceivedChallansPage(
-            page: _currentPage,
-            size: _rowsPerPage,
-          );
-        }
-      }
-      // CASE 3: Any other case (dates, mixed filters, or no filters) → use full search API
-      else {
-        response = await challanApi.searchChallans(
-          query: null, // no text search
-          challanType: challanTypeParam,
-          fromDate: fromDateStr,
-          toDate: toDateStr,
-          page: _currentPage,
-          size: _rowsPerPage,
-        );
-      }
+      // ────────────────────────────────────────────────
+      //   Rest of the parsing logic remains almost same
+      // ────────────────────────────────────────────────
+      final List<dynamic> content = (response['content'] as List?) ?? [];
+      final int totalPages = (response['totalPages'] as int?) ?? 1;
 
-      // Parse response (same for all cases)
-      final List<dynamic> content = response != null
-          ? (response['content'] as List?) ?? []
-          : [];
-
-      final int totalPages = response != null
-          ? (response['totalPages'] as int?) ?? 1
-          : 1;
-
-      result = content.map((item) {
+      final List<Map<String, dynamic>> result = content.map((item) {
         final itemsList = (item['items'] as List?) ?? [];
         final String challanType = (item['challanType'] ?? '')
             .toString()
@@ -489,22 +465,18 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
             .toLowerCase();
 
         int totalQty = 0;
-
         if (challanType == 'received') {
-          // Only add receivedQty for RECEIVED challans
-          totalQty = itemsList.fold<int>(
+          totalQty = itemsList.fold(
             0,
             (sum, i) => sum + ((i['receivedQty'] as num?)?.toInt() ?? 0),
           );
         } else if (challanType == 'delivered') {
-          // Only add deliveredQty for DELIVERED challans
-          totalQty = itemsList.fold<int>(
+          totalQty = itemsList.fold(
             0,
             (sum, i) => sum + ((i['deliveredQty'] as num?)?.toInt() ?? 0),
           );
         } else {
-          // Fallback for unknown/other types: add both (original behavior)
-          totalQty = itemsList.fold<int>(
+          totalQty = itemsList.fold(
             0,
             (sum, i) =>
                 sum +
@@ -533,10 +505,15 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
         _isLoading = false;
       });
 
-      // Show toast only on first page + truly empty
+      // Optional: improved empty state message
       if (result.isEmpty && _currentPage == 0) {
         final filters = <String>[];
-        if (hasSearch) filters.add("Search: '$_searchQuery'");
+        if (_searchQuery.trim().isNotEmpty)
+          filters.add("Search: '$_searchQuery'");
+        if (_searchSrQuery.trim().isNotEmpty)
+          filters.add("Sr No: '$_searchSrQuery'");
+        if (_searchPoQuery.trim().isNotEmpty)
+          filters.add("PO No: '$_searchPoQuery'");
         if (_selectedType != 'All') filters.add("Type: $_selectedType");
         if (_fromDate != null)
           filters.add("From: ${DateFormat('dd-MM-yyyy').format(_fromDate!)}");
@@ -544,12 +521,12 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
           filters.add("To: ${DateFormat('dd-MM-yyyy').format(_toDate!)}");
 
         final msg = filters.isEmpty
-            ? "No challans yet"
-            : "No results for: ${filters.join(' | ')}";
+            ? "No challans found"
+            : "No results for: ${filters.join(' • ')}";
         showErrorToast(context, msg);
       }
     } catch (e, s) {
-      debugPrint("Error in _fetchChallans: $e\n$s");
+      debugPrint("Error fetching challans: $e\n$s");
       showErrorToast(context, "Failed to load challans");
       setState(() {
         _challans = [];
@@ -593,6 +570,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   void _showFiltersBottomSheet() {
     // Local copies initialized with current applied values
     String localSearchQuery = _searchQuery;
+    String localSrQuery = _searchSrQuery;
+    String localPoQuery = _searchPoQuery;
     String localSelectedType = _selectedType;
     DateTime? localFromDate = _fromDate;
     DateTime? localToDate = _toDate;
@@ -601,10 +580,22 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
     final TextEditingController searchController = TextEditingController(
       text: localSearchQuery,
     );
+    final TextEditingController srController = TextEditingController(
+      text: localSrQuery,
+    );
+    final TextEditingController poController = TextEditingController(
+      text: localPoQuery,
+    );
 
     // Sync controller with local variable
     searchController.addListener(() {
       localSearchQuery = searchController.text.trim();
+    });
+    srController.addListener(() {
+      localSrQuery = srController.text.trim();
+    });
+    poController.addListener(() {
+      localPoQuery = poController.text.trim();
     });
 
     showModalBottomSheet(
@@ -649,15 +640,20 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                   // Clear local
                                   setStateBottomSheet(() {
                                     localSearchQuery = '';
+                                    localSrQuery = '';
+                                    localPoQuery = '';
                                     localSelectedType = 'All';
                                     localFromDate = null;
                                     localToDate = null;
                                   });
                                   searchController.clear();
-
+                                  srController.clear();
+                                  poController.clear();
                                   // Apply globally
                                   setState(() {
                                     _searchQuery = '';
+                                    _searchSrQuery = '';
+                                    _searchPoQuery = '';
                                     _selectedType = 'All';
                                     _fromDate = null;
                                     _toDate = null;
@@ -707,6 +703,88 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                             color: AppColors.accentBlue,
                           ),
                           hintText: "Name / Mobile / Email",
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: AppColors.accentBlue,
+                              width: 2,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "Search by Sr No",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: srController,
+                        cursorColor: AppColors.accentBlue,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: AppColors.accentBlue,
+                          ),
+                          hintText: "SR No.",
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(
+                              color: AppColors.accentBlue,
+                              width: 2,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "Search by PO No",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: poController,
+                        cursorColor: AppColors.accentBlue,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: AppColors.accentBlue,
+                          ),
+                          hintText: "PO No.",
                           filled: true,
                           fillColor: Colors.grey.shade50,
                           border: OutlineInputBorder(
@@ -789,107 +867,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-
-                      // Date Range
-                      // Row(
-                      //   children: [
-                      //     Expanded(
-                      //       child: Column(
-                      //         crossAxisAlignment: CrossAxisAlignment.start,
-                      //         children: [
-                      //           Text(
-                      //             "From Date",
-                      //             style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                      //           ),
-                      //           const SizedBox(height: 8),
-                      //           ElevatedButton.icon(
-                      //             onPressed: () async {
-                      //               final picked = await showDatePicker(
-                      //                 context: context,
-                      //                 initialDate: localFromDate ?? DateTime.now(),
-                      //                 firstDate: DateTime(2005),
-                      //                 lastDate: DateTime.now(),
-                      //                 builder: (context, child) => Theme(
-                      //                   data: Theme.of(context).copyWith(
-                      //                     colorScheme: const ColorScheme.light(
-                      //                       primary: AppColors.accentBlue,
-                      //                       onPrimary: Colors.white,
-                      //                     ),
-                      //                   ),
-                      //                   child: child!,
-                      //                 ),
-                      //               );
-                      //               if (picked != null) {
-                      //                 setStateBottomSheet(() => localFromDate = picked);
-                      //               }
-                      //             },
-                      //             icon: const Icon(Icons.calendar_today, size: 18),
-                      //             label: Text(
-                      //               localFromDate == null
-                      //                   ? "Select"
-                      //                   : DateFormat('dd MMM yyyy').format(localFromDate!),
-                      //               style: GoogleFonts.inter(fontSize: 14),
-                      //             ),
-                      //             style: ElevatedButton.styleFrom(
-                      //               backgroundColor: AppColors.accentBlue,
-                      //               foregroundColor: Colors.white,
-                      //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      //               padding: const EdgeInsets.symmetric(vertical: 16),
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 16),
-                      //     Expanded(
-                      //       child: Column(
-                      //         crossAxisAlignment: CrossAxisAlignment.start,
-                      //         children: [
-                      //           Text(
-                      //             "To Date",
-                      //             style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
-                      //           ),
-                      //           const SizedBox(height: 8),
-                      //           ElevatedButton.icon(
-                      //             onPressed: () async {
-                      //               final picked = await showDatePicker(
-                      //                 context: context,
-                      //                 initialDate: localToDate ?? DateTime.now(),
-                      //                 firstDate: localFromDate ?? DateTime(2005),
-                      //                 lastDate: DateTime.now(),
-                      //                 builder: (context, child) => Theme(
-                      //                   data: Theme.of(context).copyWith(
-                      //                     colorScheme: const ColorScheme.light(
-                      //                       primary: AppColors.accentBlue,
-                      //                       onPrimary: Colors.white,
-                      //                     ),
-                      //                   ),
-                      //                   child: child!,
-                      //                 ),
-                      //               );
-                      //               if (picked != null) {
-                      //                 setStateBottomSheet(() => localToDate = picked);
-                      //               }
-                      //             },
-                      //             icon: const Icon(Icons.calendar_today, size: 18),
-                      //             label: Text(
-                      //               localToDate == null
-                      //                   ? "Select"
-                      //                   : DateFormat('dd MMM yyyy').format(localToDate!),
-                      //               style: GoogleFonts.inter(fontSize: 14),
-                      //             ),
-                      //             style: ElevatedButton.styleFrom(
-                      //               backgroundColor: AppColors.accentBlue,
-                      //               foregroundColor: Colors.white,
-                      //               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      //               padding: const EdgeInsets.symmetric(vertical: 16),
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
+                      // Date Range Pickers
                       Row(
                         children: [
                           Expanded(
@@ -1104,6 +1082,8 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                       onPressed: () {
                         setState(() {
                           _searchQuery = localSearchQuery;
+                          _searchSrQuery = localSrQuery;
+                          _searchPoQuery = localPoQuery;
                           _selectedType = localSelectedType;
                           _fromDate = localFromDate;
                           _toDate = localToDate;
@@ -1272,606 +1252,480 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
             SafeArea(
               child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width:
-                                        MediaQuery.of(context).size.width - 100,
-                                    height: 56,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        value: _selectedType,
-                                        hint: const Text("All Types"),
-                                        isExpanded: true,
-                                        icon: const Icon(
-                                          Icons.filter_alt_outlined,
-                                          color: Colors.grey,
-                                        ),
-                                        items: ['All', 'Received', 'Delivered']
-                                            .map(
-                                              (e) => DropdownMenuItem(
-                                                value: e,
-                                                child: Text(e),
-                                              ),
-                                            )
-                                            .toList(),
-                                        onChanged: (val) {
-                                          setState(() => _selectedType = val!);
-                                          _currentPage = 0;
-                                          _fetchChallans();
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  Stack(
-                                    children: [
-                                      SizedBox(
-                                        height: 56,
-                                        width: 56,
-                                        child: ElevatedButton(
-                                          onPressed: () =>
-                                              _showFiltersBottomSheet(),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                AppColors.accentBlue,
-                                            padding: EdgeInsets.zero,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.tune_rounded,
-                                            color: Colors.white,
-                                            size: 28,
-                                          ),
-                                        ),
-                                      ),
-                                      if (_hasActiveFilters())
-                                        Positioned(
-                                          right: 6,
-                                          top: 6,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Text(
-                                              "!",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
+                        Container(
+                          width: MediaQuery.of(context).size.width - 100,
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
                           ),
-                        ),
-
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final screenWidth = constraints.maxWidth;
-                            // final double nameWidth = (screenWidth * 0.5)
-                            //     .clamp(150, 350);
-                            // final double challanWidth = screenWidth * 0.18;
-                            // final double typeWidth = screenWidth * 0.15;
-                            // final double locationWidth = screenWidth * 0.25;
-                            // final double qtyWidth = screenWidth * 0.1;
-                            // final double dateWidth = screenWidth * 0.12;
-                            // final double createdByWidth = screenWidth * 0.25;
-                            // final double actionsWidth = screenWidth * 0.35;
-                            return _filteredData.isEmpty && !_isLoading
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.receipt_long_outlined,
-                                          size: 80,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        const SizedBox(height: 20),
-                                        Text(
-                                          "No challans created yet",
-                                          style: GoogleFonts.inter(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey.shade700,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          "Create your first challan using the Add Challan button",
-                                          style: GoogleFonts.inter(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedType,
+                              hint: const Text("All Types"),
+                              isExpanded: true,
+                              icon: const Icon(
+                                Icons.filter_alt_outlined,
+                                color: Colors.grey,
+                              ),
+                              items: ['All', 'Received', 'Delivered']
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
                                     ),
                                   )
-                                : Row(
+                                  .toList(),
+                              onChanged: (val) {
+                                setState(() => _selectedType = val!);
+                                _currentPage = 0;
+                                _fetchChallans();
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        Stack(
+                          children: [
+                            SizedBox(
+                              height: 56,
+                              width: 56,
+                              child: ElevatedButton(
+                                onPressed: () => _showFiltersBottomSheet(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accentBlue,
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.tune_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                            if (_hasActiveFilters())
+                              Positioned(
+                                right: 6,
+                                top: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Text(
+                                    "!",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Expanded(
+                    child: _filteredData.isEmpty && !_isLoading
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.receipt_long_outlined,
+                                  size: 80,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  "No challans created yet",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Create your first challan using the Add Challan button",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: nameWidth,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 56,
+                                      color: AppColors.accentBlue,
+                                      alignment: Alignment.center,
+                                      // color: Colors.grey.shade50,
+                                      child: Text(
+                                        'Customer Name',
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    ..._paginatedCustomers.map((row) {
+                                      // final isSelected = _selectedIds.contains(
+                                      //   row['id'].toString(),
+                                      // );
+                                      return Container(
+                                        height: 50,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        alignment: Alignment.centerLeft,
+                                        decoration: BoxDecoration(
+                                          // color: isSelected
+                                          //     ? Colors.blue.shade50
+                                          //     : null,
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          row['name'] ?? 'N/A',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: GoogleFonts.inter(
+                                            // fontWeight: isSelected
+                                            //     ? FontWeight.bold
+                                            //     : null,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+
+                              //Scrollable Right Table
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Column(
                                     children: [
-                                      SizedBox(
-                                        // width: nameWidth,
-                                        width: nameWidth,
-                                        child: Column(
+                                      Container(
+                                        height: 56,
+                                        color: AppColors.accentBlue,
+                                        // color: Colors.grey.shade50,
+                                        child: Row(
+                                          // spacing: 5,
                                           children: [
-                                            Container(
-                                              height: 50,
-                                              color: AppColors.accentBlue,
-                                              // color: Colors.grey.shade50,
-                                              child: Row(
-                                                children: [
-                                                  if (_selectionMode)
-                                                    SizedBox(
-                                                      width: 50,
-                                                      child: Center(
-                                                        child: SizedBox(
-                                                          height: 20,
-                                                          width: 20,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  Expanded(
-                                                    child: Row(
-                                                      children: [
-                                                        SizedBox(width: 30),
-                                                        Text(
-                                                          'Name',
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style:
-                                                              GoogleFonts.inter(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 14,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                            const SizedBox(width: 5),
+                                            _headerCell(
+                                              text: "Challan No.",
+                                              width: challanWidth,
+                                              // width: 150,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            _headerCell(
+                                              text: 'Type',
+                                              width: typeWidth,
+                                              // width: 100,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            _headerCell(
+                                              text: 'Location',
+                                              width: locationWidth,
+                                              // width: 200,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            _headerCell(
+                                              text: 'Qty',
+                                              width: qtyWidth,
+                                              // width: 50,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            _headerCell(
+                                              text: 'Date',
+                                              width: dateWidth,
+                                              // width: 150,
+                                            ),
+                                            _headerCell(
+                                              text: 'Created By',
+                                              width: createdByWidth,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            SizedBox(
+                                              width: actionsWidth,
+                                              child: Center(
+                                                child: Text(
+                                                  'Actions',
+                                                  style: GoogleFonts.inter(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
-                                                ],
+                                                ),
                                               ),
                                             ),
-                                            ..._paginatedCustomers.map((row) {
-                                              final isSelected = _selectedIds
-                                                  .contains(
-                                                    row['id'].toString(),
-                                                  );
-                                              return Container(
-                                                height: 50,
-                                                decoration: BoxDecoration(
-                                                  color: isSelected
-                                                      ? Colors.blue.shade50
-                                                      : null,
-                                                  border: Border(
-                                                    bottom: BorderSide(
-                                                      color:
-                                                          Colors.grey.shade300,
-                                                    ),
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    if (_selectionMode)
-                                                      SizedBox(
-                                                        width: 50,
-                                                        child: Checkbox(
-                                                          activeColor: AppColors
-                                                              .accentBlue,
-                                                          value: isSelected,
-                                                          onChanged: (_) =>
-                                                              _toggleSelect(
-                                                                row['id']
-                                                                    .toString(),
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 25,
-                                                            ),
-                                                        child: Text(
-                                                          row['name'] ?? 'N/A',
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          maxLines: 1,
-                                                          style:
-                                                              GoogleFonts.inter(
-                                                                fontWeight:
-                                                                    isSelected
-                                                                    ? FontWeight
-                                                                          .bold
-                                                                    : null,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }),
                                           ],
                                         ),
                                       ),
 
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minWidth: screenWidth - nameWidth,
-                                            ),
-                                            child: SizedBox(
-                                              width:
-                                                  challanWidth +
-                                                  typeWidth +
-                                                  locationWidth +
-                                                  qtyWidth +
-                                                  dateWidth +
-                                                  createdByWidth +
-                                                  actionsWidth +
-                                                  35, //900,
-                                              child: Column(
-                                                children: [
-                                                  Container(
-                                                    height: 50,
-                                                    color: AppColors.accentBlue,
-                                                    // color: Colors.grey.shade50,
-                                                    child: Row(
-                                                      spacing: 5,
-                                                      children: [
-                                                        _headerCell(
-                                                          text: "Challan No.",
-                                                          width: challanWidth,
-                                                          // width: 150,
-                                                        ),
-                                                        _headerCell(
-                                                          text: 'Type',
-                                                          width: typeWidth,
-                                                          // width: 100,
-                                                        ),
-                                                        _headerCell(
-                                                          text: 'Location',
-                                                          width: locationWidth,
-                                                          // width: 200,
-                                                        ),
-                                                        _headerCell(
-                                                          text: 'Qty',
-                                                          width: qtyWidth,
-                                                          // width: 50,
-                                                        ),
-                                                        _headerCell(
-                                                          text: 'Date',
-                                                          width: dateWidth,
-                                                          // width: 150,
-                                                        ),
-                                                        _headerCell(
-                                                          text: 'Created By',
-                                                          width: createdByWidth,
-                                                        ),
-                                                        SizedBox(
-                                                          width: actionsWidth,
-                                                          child: Center(
-                                                            child: Text(
-                                                              'Actions',
-                                                              style: GoogleFonts.inter(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
+                                      ..._paginatedCustomers.map((row) {
+                                        final isSelected = _selectedIds
+                                            .contains(row['id'].toString());
+                                        final typeDisplay =
+                                            safeChallanType(row) == 'DELIVERED'
+                                            ? 'Delivered'
+                                            : safeChallanType(row) == 'RECEIVED'
+                                            ? 'Received'
+                                            : 'N/A';
 
-                                                  ..._paginatedCustomers.map((
-                                                    row,
-                                                  ) {
-                                                    final isSelected =
-                                                        _selectedIds.contains(
-                                                          row['id'].toString(),
-                                                        );
-                                                    final typeDisplay =
-                                                        safeChallanType(row) ==
-                                                            'DELIVERED'
-                                                        ? 'Delivered'
-                                                        : safeChallanType(
-                                                                row,
-                                                              ) ==
-                                                              'RECEIVED'
-                                                        ? 'Received'
-                                                        : 'N/A';
-
-                                                    return Container(
-                                                      height: 50,
-                                                      decoration: BoxDecoration(
-                                                        color: isSelected
-                                                            ? Colors
-                                                                  .blue
-                                                                  .shade50
-                                                            : null,
-                                                        border: Border(
-                                                          bottom: BorderSide(
-                                                            color: Colors
-                                                                .grey
-                                                                .shade300,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        spacing: 5,
-                                                        children: [
-                                                          SizedBox(
-                                                            width: challanWidth,
-                                                            // width: 150,
-                                                            child: Center(
-                                                              child: Text(
-                                                                row['challanNumber'] ??
-                                                                    'N/A',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                maxLines: 1,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            // width: 100,
-                                                            width: typeWidth,
-                                                            child: Center(
-                                                              child: Text(
-                                                                typeDisplay,
-                                                                style: GoogleFonts.inter(
-                                                                  color:
-                                                                      _getTypeColor(
-                                                                        row,
-                                                                      ),
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width:
-                                                                locationWidth,
-                                                            // width: 200,
-                                                            child: Center(
-                                                              child: Text(
-                                                                row['location'] ??
-                                                                    'N/A',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                maxLines: 1,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: qtyWidth,
-                                                            // width: 50,
-                                                            child: Center(
-                                                              child: Text(
-                                                                row['qty']
-                                                                        ?.toString() ??
-                                                                    '0',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: dateWidth,
-                                                            // width: 150,
-                                                            child: Center(
-                                                              child: Text(
-                                                                row['date']
-                                                                        ?.toString() ??
-                                                                    'N/A',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            // width: 150,
-                                                            width:
-                                                                createdByWidth,
-                                                            child: Center(
-                                                              child: Text(
-                                                                row['createdBy'] ??
-                                                                    'N/A',
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                maxLines: 1,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: actionsWidth,
-                                                            child: Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                IconButton(
-                                                                  onPressed: () =>
-                                                                      _showUserGoodsDetails(
-                                                                        int.tryParse(
-                                                                              row['id'].toString(),
-                                                                            ) ??
-                                                                            0,
-                                                                      ),
-                                                                  icon: Icon(
-                                                                    CupertinoIcons
-                                                                        .doc_text_search,
-                                                                    color:
-                                                                        Color.fromRGBO(
-                                                                          0,
-                                                                          140,
-                                                                          192,
-                                                                          1,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                                if (isAdmin)
-                                                                  IconButton(
-                                                                    onPressed: () =>
-                                                                        _editChallan(
-                                                                          row,
-                                                                        ),
-                                                                    icon: Image.asset(
-                                                                      "assets/images/edit.png",
-                                                                    ),
-                                                                    tooltip:
-                                                                        'Edit',
-                                                                  ),
-                                                                if (isAdmin)
-                                                                  IconButton(
-                                                                    onPressed: () =>
-                                                                        _deleteChallan(
-                                                                          row['id'],
-                                                                          safeChallanType(
-                                                                            row,
-                                                                          ),
-                                                                        ),
-                                                                    icon: Icon(
-                                                                      CupertinoIcons
-                                                                          .bin_xmark_fill,
-                                                                      color: Colors
-                                                                          .red,
-                                                                    ),
-                                                                    tooltip:
-                                                                        'Delete',
-                                                                  ),
-                                                                IconButton(
-                                                                  onPressed: () =>
-                                                                      challanApi.sharePdf(
-                                                                        row['id'],
-                                                                        context,
-                                                                        row['challanNumber'],
-                                                                      ),
-                                                                  icon: Icon(
-                                                                    Icons
-                                                                        .share_rounded,
-                                                                    color:
-                                                                        Color.fromRGBO(
-                                                                          0,
-                                                                          140,
-                                                                          192,
-                                                                          1,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                                IconButton(
-                                                                  icon: Image.asset(
-                                                                    "assets/images/sheet.png",
-                                                                  ),
-                                                                  tooltip:
-                                                                      'Download & View PDF',
-                                                                  onPressed: () async {
-                                                                    setState(
-                                                                      () => _isLoading =
-                                                                          true,
-                                                                    );
-                                                                    try {
-                                                                      final id =
-                                                                          int.tryParse(
-                                                                            row['id'].toString(),
-                                                                          ) ??
-                                                                          0;
-                                                                      if (id <=
-                                                                          0) {
-                                                                        showErrorToast(
-                                                                          context,
-                                                                          "Invalid Challan ID",
-                                                                        );
-                                                                        return;
-                                                                      }
-                                                                      await challanApi.downloadAndShowPdf(
-                                                                        row['id'],
-                                                                        challanNumber:
-                                                                            row['challanNumber'],
-                                                                        context:
-                                                                            context,
-                                                                      );
-                                                                    } catch (
-                                                                      e
-                                                                    ) {
-                                                                      showErrorToast(
-                                                                        context,
-                                                                        "Failed to load PDF",
-                                                                      );
-                                                                    } finally {
-                                                                      setState(
-                                                                        () => _isLoading =
-                                                                            false,
-                                                                      );
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  }),
-                                                ],
+                                        return Container(
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.blue.shade50
+                                                : null,
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: Colors.grey.shade300,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
+                                          child: Row(
+                                            // spacing: 5,
+                                            children: [
+                                              SizedBox(
+                                                width: challanWidth,
+                                                // width: 150,
+                                                child: Center(
+                                                  child: Text(
+                                                    row['challanNumber'] ??
+                                                        'N/A',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                // width: 100,
+                                                width: typeWidth,
+                                                child: Center(
+                                                  child: Text(
+                                                    typeDisplay,
+                                                    style: GoogleFonts.inter(
+                                                      color: _getTypeColor(row),
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                width: locationWidth,
+                                                // width: 200,
+                                                child: Center(
+                                                  child: Text(
+                                                    row['location'] ?? 'N/A',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                width: qtyWidth,
+                                                // width: 50,
+                                                child: Center(
+                                                  child: Text(
+                                                    row['qty']?.toString() ??
+                                                        '0',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                width: dateWidth,
+                                                // width: 150,
+                                                child: Center(
+                                                  child: Text(
+                                                    row['date']?.toString() ??
+                                                        'N/A',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                // width: 150,
+                                                width: createdByWidth,
+                                                child: Center(
+                                                  child: Text(
+                                                    row['createdBy'] ?? 'N/A',
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              SizedBox(
+                                                width: actionsWidth,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    IconButton(
+                                                      onPressed: () =>
+                                                          _showUserGoodsDetails(
+                                                            int.tryParse(
+                                                                  row['id']
+                                                                      .toString(),
+                                                                ) ??
+                                                                0,
+                                                          ),
+                                                      icon: Icon(
+                                                        CupertinoIcons
+                                                            .doc_text_search,
+                                                        color: Color.fromRGBO(
+                                                          0,
+                                                          140,
+                                                          192,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if (isAdmin)
+                                                      IconButton(
+                                                        onPressed: () =>
+                                                            _editChallan(row),
+                                                        icon: Image.asset(
+                                                          "assets/images/edit.png",
+                                                        ),
+                                                        tooltip: 'Edit',
+                                                      ),
+                                                    if (isAdmin)
+                                                      IconButton(
+                                                        onPressed: () =>
+                                                            _deleteChallan(
+                                                              row['id'],
+                                                              safeChallanType(
+                                                                row,
+                                                              ),
+                                                            ),
+                                                        icon: Icon(
+                                                          CupertinoIcons
+                                                              .bin_xmark_fill,
+                                                          color: Colors.red,
+                                                        ),
+                                                        tooltip: 'Delete',
+                                                      ),
+                                                    IconButton(
+                                                      onPressed: () =>
+                                                          challanApi.sharePdf(
+                                                            row['id'],
+                                                            context,
+                                                            row['challanNumber'],
+                                                          ),
+                                                      icon: Icon(
+                                                        Icons.share_rounded,
+                                                        color: Color.fromRGBO(
+                                                          0,
+                                                          140,
+                                                          192,
+                                                          1,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    IconButton(
+                                                      icon: Image.asset(
+                                                        "assets/images/sheet.png",
+                                                      ),
+                                                      tooltip:
+                                                          'Download & View PDF',
+                                                      onPressed: () async {
+                                                        setState(
+                                                          () =>
+                                                              _isLoading = true,
+                                                        );
+                                                        try {
+                                                          final id =
+                                                              int.tryParse(
+                                                                row['id']
+                                                                    .toString(),
+                                                              ) ??
+                                                              0;
+                                                          if (id <= 0) {
+                                                            showErrorToast(
+                                                              context,
+                                                              "Invalid Challan ID",
+                                                            );
+                                                            return;
+                                                          }
+                                                          await challanApi
+                                                              .downloadAndShowPdf(
+                                                                row['id'],
+                                                                challanNumber:
+                                                                    row['challanNumber'],
+                                                                context:
+                                                                    context,
+                                                              );
+                                                        } catch (e) {
+                                                          showErrorToast(
+                                                            context,
+                                                            "Failed to load PDF",
+                                                          );
+                                                        } finally {
+                                                          setState(
+                                                            () => _isLoading =
+                                                                false,
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
                                     ],
-                                  );
-                          },
-                        ),
-                      ],
-                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
 
                   Container(
@@ -1880,9 +1734,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                       vertical: 12,
                       horizontal: 16,
                     ),
-                    child:
-                    
-                     Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Previous button
@@ -1921,8 +1773,6 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                         ),
                       ],
                     ),
-               
-               
                   ),
                   // Container(
                   //   color: const Color(0xFFB3E0F2),
@@ -1966,8 +1816,9 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
   List<Widget> _buildPageNumbers({required bool isMobile}) {
     List<Widget> pages = [];
 
-     int delta =  isMobile ? 0 :
-        1; // ← This controls how many pages on each side of current
+    int delta = isMobile
+        ? 0
+        : 1; // ← This controls how many pages on each side of current
     // delta = 2 → total 5 pages in middle (2 left + current + 2 right)
 
     if (_totalPages <= delta * 2 + 3) {

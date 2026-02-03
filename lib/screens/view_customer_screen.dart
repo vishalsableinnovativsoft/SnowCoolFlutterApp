@@ -24,12 +24,12 @@ class ViewCustomerScreenFixed extends StatefulWidget {
 }
 
 class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
-   late final width = MediaQuery.of(context).size.width;
+  late final width = MediaQuery.of(context).size.width;
 
-    // 🔹 Breakpoints
-    late final bool isMobile = width < 600;
-    late final bool isTablet = width >= 600 && width < 1024;
-    late final bool isDesktop = width >= 1024;
+  // 🔹 Breakpoints
+  late final bool isMobile = width < 600;
+  late final bool isTablet = width >= 600 && width < 1024;
+  late final bool isDesktop = width >= 1024;
 
   bool canCreateCustomer = TokenManager().canCreateCustomer;
 
@@ -52,7 +52,7 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
 
   String _userRole = 'Employee';
 
-  Timer? _searchDebounce; // ← Add this at the top of your State class
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -192,7 +192,10 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                   child: Center(
                     child: const Text(
                       "No items found.",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -421,6 +424,105 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
     ),
   );
 
+  Widget _buildEmailCell(String? emailStr, double width) {
+    if (emailStr == null || emailStr.isEmpty) {
+      return _cell('—', width);
+    }
+
+    final emails = emailStr
+        .split('/')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (emails.isEmpty) {
+      return _cell('—', width);
+    }
+
+    final firstEmail = emails[0];
+
+    if (emails.length == 1) {
+      return _cell(firstEmail, width);
+    }
+
+    return SizedBox(
+      width: width,
+      height: 56,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          // crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              firstEmail,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(fontSize: 13.5),
+            ),
+            TextButton(
+              onPressed: () => _showAllEmails(emails),
+              child: Text(
+                '+${emails.length - 1} more',
+                style: TextStyle(fontSize: 12, color: AppColors.accentBlue),
+              ),
+              style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAllEmails(List<String> emails) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.email_outlined, color: AppColors.accentBlue),
+            const SizedBox(width: 12),
+            Text(
+              'Customer Emails',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.accentBlue,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: emails
+              .map(
+                (e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: SelectableText(
+                    e,
+                    style: GoogleFonts.inter(fontSize: 15),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Close', style: TextStyle(color: AppColors.accentBlue)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _cell(String text, double width) => SizedBox(
     width: width,
     child: Padding(
@@ -621,8 +723,6 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
 
   @override
   Widget build(BuildContext context) {
-   
-
     final bool isAdmin = _userRole == 'ADMIN';
 
     // 🔹 Responsive column widths
@@ -839,9 +939,9 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                       ),
                                     ),
                                     ..._filteredData.map((row) {
-                                      final isSelected = _selectedIds.contains(
-                                        row['id'].toString(),
-                                      );
+                                      // final isSelected = _selectedIds.contains(
+                                      //   row['id'].toString(),
+                                      // );
                                       return InkWell(
                                         onTap: () => Navigator.push(
                                           context,
@@ -861,9 +961,9 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                           ),
                                           alignment: Alignment.centerLeft,
                                           decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? Colors.blue.shade50
-                                                : null,
+                                            // color: isSelected
+                                            //     ? Colors.blue.shade50
+                                            //     : null,
                                             border: Border(
                                               bottom: BorderSide(
                                                 color: Colors.grey.shade300,
@@ -874,9 +974,9 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                             row['name'],
                                             overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.inter(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.w500,
+                                              // fontWeight: isSelected
+                                              //     ? FontWeight.bold
+                                              //     : FontWeight.w500,
                                               color: AppColors.accentBlue,
                                             ),
                                           ),
@@ -934,12 +1034,16 @@ class _ViewCustomerScreenFixedState extends State<ViewCustomerScreenFixed> {
                                                 row['contactNumber'] ?? '—',
                                                 mobileColWidth,
                                               ),
-                                              _cell(
-                                                row['email']?.isEmpty ?? true
-                                                    ? '—'
-                                                    : row['email'],
+                                              _buildEmailCell(
+                                                row['email'],
                                                 emailColWidth,
                                               ),
+                                              // _cell(
+                                              //   row['email']?.isEmpty ?? true
+                                              //       ? '—'
+                                              //       : row['email'],
+                                              //   emailColWidth,
+                                              // ),
                                               _cell(
                                                 row['address']?.isEmpty ?? true
                                                     ? '—'

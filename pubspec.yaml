@@ -3,7 +3,7 @@ description: "Snowcool Trading Co. Mobile App - Gas Cylinder Management System."
 
 publish_to: 'none'
 
-version: 1.0.2+5
+version: 1.0.3+6
 
 environment:
   sdk: ^3.9.0

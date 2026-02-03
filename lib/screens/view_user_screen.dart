@@ -136,10 +136,10 @@ class _UserViewScreenState extends State<UserViewScreen> {
 
   // EDIT: Navigate to UserCreateScreen with user data
   Future<void> _editUser(int index, int userId) async {
-    if (userId == 1) {
-      showWarningToast(context, "The primary user cannot be edited.");
-      return;
-    }
+    // if (userId == 1) {
+    //   showWarningToast(context, "The primary user cannot be edited.");
+    //   return;
+    // }
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -390,7 +390,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                     ],
                   ),
                 ),
-                if (user.id != 1)
+                // if (user.id != 1)
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert, color: Colors.black54),
                     tooltip: 'More options',
@@ -423,6 +423,7 @@ class _UserViewScreenState extends State<UserViewScreen> {
                           ],
                         ),
                       ),
+                        if (user.id != 1)
                       PopupMenuItem(
                         value: 'delete',
                         child: Row(

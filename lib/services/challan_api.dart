@@ -892,8 +892,8 @@ class ChallanApi {
         'items': items
             .map(
               (item) => {
-                'id' : item['id'],
-                'goodsItemId' : item['goodsItemId'],
+                'id': item['id'],
+                'goodsItemId': item['goodsItemId'],
                 'name': item['name'],
                 'type': item['type'] ?? '',
                 'deliveredQty': item['deliveredQty'],
@@ -1203,6 +1203,8 @@ class ChallanApi {
   Future<Map<String, dynamic>> searchChallans({
     String? query,
     String? challanType,
+    String? srNoSearch,
+    String? poNoSearch,
     String? fromDate,
     String? toDate,
     required int page,
@@ -1213,19 +1215,33 @@ class ChallanApi {
       'size': size.toString(),
     };
 
-    // Add filters
+    // Add common filters
     if (challanType != null && challanType.trim().isNotEmpty) {
       params['challanType'] = challanType.trim().toUpperCase();
     }
     if (fromDate != null && fromDate.isNotEmpty) params['fromDate'] = fromDate;
     if (toDate != null && toDate.isNotEmpty) params['toDate'] = toDate;
 
-    // Smart query detection
+    // Independently set srNo if provided & valid (alphanumeric)
+    if (srNoSearch != null &&
+        srNoSearch.trim().isNotEmpty &&
+        RegExp(r'^[a-zA-Z0-9]+$').hasMatch(srNoSearch.trim())) {
+      params['srNo'] = srNoSearch.trim();
+    }
+
+    // Independently set poNumber if provided & valid (alphanumeric)
+    if (poNoSearch != null &&
+        poNoSearch.trim().isNotEmpty &&
+        RegExp(r'^[a-zA-Z0-9]+$').hasMatch(poNoSearch.trim())) {
+      params['poNumber'] = poNoSearch.trim();
+    }
+
+    // Smart detection for query (general search: name/email/phone)
     if (query != null && query.trim().isNotEmpty) {
       final q = query.trim();
 
-      // CASE 1: Contains @ or . → definitely email
-      if (q.contains('@') || q.contains('.')) {
+      // CASE 1: Valid email (full regex)
+      if (RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(q)) {
         params['email'] = q;
       }
       // CASE 2: Only numbers → phone
@@ -1236,7 +1252,7 @@ class ChallanApi {
       else if (RegExp(r'^[a-zA-Z\s]+$').hasMatch(q)) {
         params['name'] = q;
       }
-      // CASE 4: Mixed weird input (e.g. "avi123", "test#123") → search all
+      // CASE 4: Mixed/weird input → search across text fields
       else {
         params['name'] = q;
         params['contactNumber'] = q;

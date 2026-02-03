@@ -438,12 +438,6 @@ class PassbookApi {
             };
           }).toList();
 
-          // final productType = itemsList.map((i) {
-          //   final String productName =
-          //       i['name']?.toString() ?? 'Unknown Product';
-          //   return {'productName': productName};
-          // }).toList();
-
           final List<String> productType = itemsList
               .map(
                 (i) =>

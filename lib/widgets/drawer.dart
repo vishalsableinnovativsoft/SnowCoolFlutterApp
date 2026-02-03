@@ -366,6 +366,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                       child: ListTile(
                                         title: const Text(
                                           'Logout',
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(color: Colors.red),
                                         ),
                                         leading: const Icon(
@@ -402,7 +403,11 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                               Icons.settings,
                                               color: Colors.black,
                                             ),
-                                            title: const Text('Settings'),
+                                            title: const Text('Settings',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    color: Colors.black)),
+
                                             onTap: () {
                                               Navigator.pop(context);
                                               Navigator.of(context).push(
@@ -552,6 +557,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                     )
                   : const Text(
                       'Logout',
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
             ),

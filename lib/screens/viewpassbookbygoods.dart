@@ -1209,7 +1209,6 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
       final List<Map<String, dynamic>> aggregated = [];
 
       groupedByChallan.forEach((challanKey, entries) {
-
         final parent = entries.first; // common fields
 
         // Collect all items across all duplicate challan entries
