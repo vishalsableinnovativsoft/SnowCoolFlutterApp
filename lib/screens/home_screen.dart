@@ -99,6 +99,18 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {}
   }
 
+  void _navigateToChallanSearch(String query) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ViewChallanScreen(
+        type: 'All',
+        initialQuery: query,
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -232,6 +244,188 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: verticalGap),
+
+if (isAdmin || canManageChallan)
+  Container(
+    decoration: BoxDecoration(
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.accentBlue.withOpacity(0.12),
+          blurRadius: 12,
+          offset: const Offset(0, 5),
+        ),
+      ],
+    ),
+    child: TextField(
+      controller: _searchController,
+      textInputAction: TextInputAction.search,
+      onSubmitted: (value) {
+        if (value.trim().isNotEmpty) {
+          _navigateToChallanSearch(value.trim());
+        }
+      },
+      decoration: InputDecoration(
+        hintText: "Search challans by any field...",
+        hintStyle: TextStyle(
+          color: Colors.grey.shade500,
+          fontSize: 15,
+        ),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: AppColors.accentBlue,
+          size: 22,
+        ),
+        suffixIcon: AnimatedBuilder(
+          animation: _searchController,
+          builder: (context, child) {
+            final showClear = _searchController.text.isNotEmpty;
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showClear)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.clear_rounded,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      // Optional: trigger search reset if needed
+                    },
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Material(
+                    color: AppColors.accentBlue,
+                    borderRadius: BorderRadius.circular(50),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(50),
+                      onTap: () {
+                        final query = _searchController.text.trim();
+                        if (query.isNotEmpty) {
+                          _navigateToChallanSearch(query);
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: BorderSide(color: AppColors.accentBlue, width: 2),
+        ),
+      ),
+    ),
+  ),
+                          // SizedBox(height: verticalGap),
+                          // if (isAdmin || canManageChallan)
+                          //   Container(
+                          //     decoration: BoxDecoration(
+                          //       boxShadow: [
+                          //         BoxShadow(
+                          //           color: AppColors.accentBlue.withOpacity(
+                          //             0.12,
+                          //           ),
+                          //           blurRadius: 12,
+                          //           offset: const Offset(0, 5),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //     child: TextField(
+                          //       controller: _searchController,
+                          //       // textInputAction: TextInputAction.search,
+                          //       // onSubmitted: (value) {
+                          //       //   if (value.trim().isNotEmpty) {
+                          //       //     _navigateToChallanSearch(value.trim());
+                          //       //   }
+                          //       // },
+                          //       decoration: InputDecoration(
+                          //         suffixIcon: GestureDetector(
+                          //           onTap: () {
+                          //             Navigator.push(
+                          //               context,
+                          //               MaterialPageRoute(
+                          //                 builder: (_) => ViewChallanScreen(
+                          //                   type: 'All',
+                          //                   initialQuery:
+                          //                       _searchController.text,
+                          //                 ),
+                          //               ),
+                          //             );
+                          //           },
+                          //           child: Icon(
+                          //             Icons.search,
+                          //             color: AppColors.accentBlue,
+                          //           ),
+                          //         ),
+                          //         // prefixIcon: Icon(
+                          //         //   Icons.search,
+                          //         //   color: AppColors.accentBlue,
+                          //         // ),
+                          //         hint: Text("Search challans by any field..."),
+                          //         hintStyle: TextStyle(
+                          //           color: Colors.grey.shade500,
+                          //         ),
+                          //         border: OutlineInputBorder(
+                          //           borderRadius: BorderRadius.circular(24),
+                          //           borderSide: BorderSide.none,
+                          //         ),
+                          //         enabledBorder: OutlineInputBorder(
+                          //           borderRadius: BorderRadius.circular(24),
+                          //           borderSide: BorderSide(
+                          //             color: Colors.grey.shade300,
+                          //           ),
+                          //         ),
+                          //         focusedBorder: OutlineInputBorder(
+                          //           borderRadius: BorderRadius.circular(24),
+                          //           borderSide: BorderSide(
+                          //             color: AppColors.accentBlue,
+                          //             width: 2,
+                          //           ),
+                          //         ),
+                          //         contentPadding: const EdgeInsets.symmetric(
+                          //           horizontal: 16,
+                          //           vertical: 16,
+                          //         ),
+                          //       ),
+                          //       // onChanged: (query) {
+                          //       //   Navigator.push(
+                          //       //     context,
+                          //       //     MaterialPageRoute(
+                          //       //       builder: (_) => ViewChallanScreen(
+                          //       //         type: 'All',
+                          //       //         initialQuery: query,
+                          //       //       ),
+                          //       //     ),
+                          //       //   );
+                          //       // },
+                          //     ),
+                          //   ),
+                          
+                          SizedBox(height: verticalGap),
                           Row(
                             children: [
                               Expanded(
@@ -318,22 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           ),
                                                     ),
                                                   ),
-                                            // Text(
-                                            //   _dashboardLoading
-                                            //       ? '—'
-                                            //       : totalDeliveredItems
-                                            //             .toString(),
-                                            //   style: GoogleFonts.inter(
-                                            //     fontSize: isMobile ? 28 : 32,
-                                            //     fontWeight: FontWeight.bold,
-                                            //     color: const Color.fromRGBO(
-                                            //       0,
-                                            //       140,
-                                            //       192,
-                                            //       1,
-                                            //     ),
-                                            //   ),
-                                            // ),
+
                                             const SizedBox(height: 6),
                                             Text(
                                               'Delivered Items',

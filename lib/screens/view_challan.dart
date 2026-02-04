@@ -16,7 +16,8 @@ import 'package:universal_platform/universal_platform.dart';
 
 class ViewChallanScreen extends StatefulWidget {
   final String? type;
-  const ViewChallanScreen({super.key, this.type});
+  final String? initialQuery;
+  const ViewChallanScreen({super.key, this.type, this.initialQuery});
 
   @override
   State<ViewChallanScreen> createState() => _ViewChallanScreenState();
@@ -404,6 +405,13 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
       }
     }
 
+    if (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty) {
+      _searchQuery = widget.initialQuery!.trim();
+      _selectedType = 'All';
+    } else {
+      _fetchChallans();
+    }
+
     _loadUserRole();
     _fetchChallans();
   }
@@ -416,126 +424,253 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
     setState(() {});
   }
 
-  Future<void> _fetchChallans() async {
-    if (_isLoading) return;
-    setState(() => _isLoading = true);
+  // Future<void> _fetchChallans() async {
+  //   if (_isLoading) return;
+  //   setState(() => _isLoading = true);
 
-    try {
-      final String? challanTypeParam = _selectedType == 'All'
-          ? null
-          : _selectedType.toUpperCase();
+  //   try {
+  //     final String? challanTypeParam = _selectedType == 'All'
+  //         ? null
+  //         : _selectedType.toUpperCase();
 
-      final String? fromDateStr = _fromDate != null
-          ? DateFormat('yyyy-MM-dd').format(_fromDate!)
-          : null;
+  //     final String? fromDateStr = _fromDate != null
+  //         ? DateFormat('yyyy-MM-dd').format(_fromDate!)
+  //         : null;
 
-      final String? toDateStr = _toDate != null
-          ? DateFormat('yyyy-MM-dd').format(_toDate!)
-          : null;
+  //     final String? toDateStr = _toDate != null
+  //         ? DateFormat('yyyy-MM-dd').format(_toDate!)
+  //         : null;
 
-      // ────────────────────────────────────────────────
-      //   Unified call — pass EVERY active filter
-      // ────────────────────────────────────────────────
-      final response = await challanApi.searchChallans(
+  //     // ────────────────────────────────────────────────
+  //     //   Unified call — pass EVERY active filter
+  //     // ────────────────────────────────────────────────
+  //     final response = await challanApi.searchChallans(
+  //       query: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
+  //       srNoSearch: _searchSrQuery.trim().isNotEmpty
+  //           ? _searchSrQuery.trim()
+  //           : null,
+  //       poNoSearch: _searchPoQuery.trim().isNotEmpty
+  //           ? _searchPoQuery.trim()
+  //           : null,
+  //       challanType: challanTypeParam,
+  //       fromDate: fromDateStr,
+  //       toDate: toDateStr,
+  //       page: _currentPage,
+  //       size: _rowsPerPage,
+  //     );
+
+  //     // ────────────────────────────────────────────────
+  //     //   Rest of the parsing logic remains almost same
+  //     // ────────────────────────────────────────────────
+  //     final List<dynamic> content = (response['content'] as List?) ?? [];
+  //     final int totalPages = (response['totalPages'] as int?) ?? 1;
+
+  //     final List<Map<String, dynamic>> result = content.map((item) {
+  //       final itemsList = (item['items'] as List?) ?? [];
+  //       final String challanType = (item['challanType'] ?? '')
+  //           .toString()
+  //           .trim()
+  //           .toLowerCase();
+
+  //       int totalQty = 0;
+  //       if (challanType == 'received') {
+  //         totalQty = itemsList.fold(
+  //           0,
+  //           (sum, i) => sum + ((i['receivedQty'] as num?)?.toInt() ?? 0),
+  //         );
+  //       } else if (challanType == 'delivered') {
+  //         totalQty = itemsList.fold(
+  //           0,
+  //           (sum, i) => sum + ((i['deliveredQty'] as num?)?.toInt() ?? 0),
+  //         );
+  //       } else {
+  //         totalQty = itemsList.fold(
+  //           0,
+  //           (sum, i) =>
+  //               sum +
+  //               ((i['deliveredQty'] as num?)?.toInt() ?? 0) +
+  //               ((i['receivedQty'] as num?)?.toInt() ?? 0),
+  //         );
+  //       }
+
+  //       return {
+  //         'id': item['id'],
+  //         'name': item['customerName'] ?? 'Unknown Customer',
+  //         'challanType': (item['challanType'] ?? '').toString().toUpperCase(),
+  //         'location': item['siteLocation'] ?? '',
+  //         'qty': totalQty,
+  //         'date': item['date'] ?? '',
+  //         'challanNumber': item['challanNumber'] ?? 'CH-${item['id']}',
+  //         'createdBy': item['createdBy'] ?? 'Unknown',
+  //         'rawData': item,
+  //       };
+  //     }).toList();
+
+  //     setState(() {
+  //       _challans = result;
+  //       _filteredData = result;
+  //       _totalPages = totalPages;
+  //       _isLoading = false;
+  //     });
+
+  //     // Optional: improved empty state message
+  //     if (result.isEmpty && _currentPage == 0) {
+  //       final filters = <String>[];
+  //       if (_searchQuery.trim().isNotEmpty)
+  //         filters.add("Search: '$_searchQuery'");
+  //       if (_searchSrQuery.trim().isNotEmpty)
+  //         filters.add("Sr No: '$_searchSrQuery'");
+  //       if (_searchPoQuery.trim().isNotEmpty)
+  //         filters.add("PO No: '$_searchPoQuery'");
+  //       if (_selectedType != 'All') filters.add("Type: $_selectedType");
+  //       if (_fromDate != null)
+  //         filters.add("From: ${DateFormat('dd-MM-yyyy').format(_fromDate!)}");
+  //       if (_toDate != null)
+  //         filters.add("To: ${DateFormat('dd-MM-yyyy').format(_toDate!)}");
+
+  //       final msg = filters.isEmpty
+  //           ? "No challans found"
+  //           : "No results for: ${filters.join(' • ')}";
+  //       showErrorToast(context, msg);
+  //     }
+  //   } catch (e, s) {
+  //     debugPrint("Error fetching challans: $e\n$s");
+  //     showErrorToast(context, "Failed to load challans");
+  //     setState(() {
+  //       _challans = [];
+  //       _filteredData = [];
+  //       _totalPages = 1;
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
+
+   Future<void> _fetchChallans() async {
+  if (_isLoading) return;
+  setState(() => _isLoading = true);
+
+  try {
+    final String? fromDateStr = _fromDate != null
+        ? DateFormat('yyyy-MM-dd').format(_fromDate!)
+        : null;
+
+    final String? toDateStr = _toDate != null
+        ? DateFormat('yyyy-MM-dd').format(_toDate!)
+        : null;
+
+    final String? challanTypeParam = _selectedType == 'All'
+        ? null
+        : _selectedType.toUpperCase();
+
+    dynamic response;
+
+    // ────────────────────────────────────────────────────────────────
+    //  DECISION: Use simple /search endpoint when initialQuery is active
+    // ────────────────────────────────────────────────────────────────
+    final bool useSimpleSearch = widget.initialQuery != null &&
+        widget.initialQuery!.trim().isNotEmpty &&
+        // Optional: also check that advanced filters are mostly default
+        _searchQuery.isEmpty &&
+        _searchSrQuery.isEmpty &&
+        _searchPoQuery.isEmpty &&
+        _selectedType == 'All' &&
+        _fromDate == null &&
+        _toDate == null;
+
+    if (useSimpleSearch) {
+      // Use the new simple search endpoint
+      response = await challanApi.searchChallansSimple(
+        query: widget.initialQuery!.trim(),
+        page: _currentPage,
+        size: _rowsPerPage,
+      );
+    } else {
+      // Normal advanced search (your existing method)
+      response = await challanApi.searchChallans(
         query: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
-        srNoSearch: _searchSrQuery.trim().isNotEmpty
-            ? _searchSrQuery.trim()
-            : null,
-        poNoSearch: _searchPoQuery.trim().isNotEmpty
-            ? _searchPoQuery.trim()
-            : null,
+        srNoSearch: _searchSrQuery.trim().isNotEmpty ? _searchSrQuery.trim() : null,
+        poNoSearch: _searchPoQuery.trim().isNotEmpty ? _searchPoQuery.trim() : null,
         challanType: challanTypeParam,
         fromDate: fromDateStr,
         toDate: toDateStr,
         page: _currentPage,
         size: _rowsPerPage,
       );
-
-      // ────────────────────────────────────────────────
-      //   Rest of the parsing logic remains almost same
-      // ────────────────────────────────────────────────
-      final List<dynamic> content = (response['content'] as List?) ?? [];
-      final int totalPages = (response['totalPages'] as int?) ?? 1;
-
-      final List<Map<String, dynamic>> result = content.map((item) {
-        final itemsList = (item['items'] as List?) ?? [];
-        final String challanType = (item['challanType'] ?? '')
-            .toString()
-            .trim()
-            .toLowerCase();
-
-        int totalQty = 0;
-        if (challanType == 'received') {
-          totalQty = itemsList.fold(
-            0,
-            (sum, i) => sum + ((i['receivedQty'] as num?)?.toInt() ?? 0),
-          );
-        } else if (challanType == 'delivered') {
-          totalQty = itemsList.fold(
-            0,
-            (sum, i) => sum + ((i['deliveredQty'] as num?)?.toInt() ?? 0),
-          );
-        } else {
-          totalQty = itemsList.fold(
-            0,
-            (sum, i) =>
-                sum +
-                ((i['deliveredQty'] as num?)?.toInt() ?? 0) +
-                ((i['receivedQty'] as num?)?.toInt() ?? 0),
-          );
-        }
-
-        return {
-          'id': item['id'],
-          'name': item['customerName'] ?? 'Unknown Customer',
-          'challanType': (item['challanType'] ?? '').toString().toUpperCase(),
-          'location': item['siteLocation'] ?? '',
-          'qty': totalQty,
-          'date': item['date'] ?? '',
-          'challanNumber': item['challanNumber'] ?? 'CH-${item['id']}',
-          'createdBy': item['createdBy'] ?? 'Unknown',
-          'rawData': item,
-        };
-      }).toList();
-
-      setState(() {
-        _challans = result;
-        _filteredData = result;
-        _totalPages = totalPages;
-        _isLoading = false;
-      });
-
-      // Optional: improved empty state message
-      if (result.isEmpty && _currentPage == 0) {
-        final filters = <String>[];
-        if (_searchQuery.trim().isNotEmpty)
-          filters.add("Search: '$_searchQuery'");
-        if (_searchSrQuery.trim().isNotEmpty)
-          filters.add("Sr No: '$_searchSrQuery'");
-        if (_searchPoQuery.trim().isNotEmpty)
-          filters.add("PO No: '$_searchPoQuery'");
-        if (_selectedType != 'All') filters.add("Type: $_selectedType");
-        if (_fromDate != null)
-          filters.add("From: ${DateFormat('dd-MM-yyyy').format(_fromDate!)}");
-        if (_toDate != null)
-          filters.add("To: ${DateFormat('dd-MM-yyyy').format(_toDate!)}");
-
-        final msg = filters.isEmpty
-            ? "No challans found"
-            : "No results for: ${filters.join(' • ')}";
-        showErrorToast(context, msg);
-      }
-    } catch (e, s) {
-      debugPrint("Error fetching challans: $e\n$s");
-      showErrorToast(context, "Failed to load challans");
-      setState(() {
-        _challans = [];
-        _filteredData = [];
-        _totalPages = 1;
-        _isLoading = false;
-      });
     }
+
+    // ────────────────────────────────────────────────
+    //   Common parsing logic (same for both responses)
+    // ────────────────────────────────────────────────
+    final List<dynamic> content = (response['content'] as List?) ?? [];
+    final int totalPages = (response['totalPages'] as int?) ?? 1;
+
+    final List<Map<String, dynamic>> result = content.map((item) {
+      final itemsList = (item['items'] as List?) ?? [];
+      final String challanType = (item['challanType'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase();
+
+      int totalQty = 0;
+      if (challanType == 'received') {
+        totalQty = itemsList.fold(
+          0,
+          (sum, i) => sum + ((i['receivedQty'] as num?)?.toInt() ?? 0),
+        );
+      } else if (challanType == 'delivered') {
+        totalQty = itemsList.fold(
+          0,
+          (sum, i) => sum + ((i['deliveredQty'] as num?)?.toInt() ?? 0),
+        );
+      } else {
+        totalQty = itemsList.fold(
+          0,
+          (sum, i) =>
+              sum +
+              ((i['deliveredQty'] as num?)?.toInt() ?? 0) +
+              ((i['receivedQty'] as num?)?.toInt() ?? 0),
+        );
+      }
+
+      return {
+        'id': item['id'],
+        'name': item['customerName'] ?? 'Unknown Customer',
+        'challanType': (item['challanType'] ?? '').toString().toUpperCase(),
+        'location': item['siteLocation'] ?? '-',
+        'lrNumber': item['lrNumber'] ?? '-',
+        'qty': totalQty,
+        'date': item['date'] ?? '',
+        'challanNumber': item['challanNumber'] ?? '-',
+        'createdBy': item['createdBy'] ?? 'Unknown',
+        'rawData': item,
+      };
+    }).toList();
+
+    setState(() {
+      _challans = result;
+      _filteredData = result;
+      _totalPages = totalPages;
+      _isLoading = false;
+    });
+
+    // Optional: better empty message
+    if (result.isEmpty && _currentPage == 0) {
+      showErrorToast(context, useSimpleSearch
+          ? "No challans found for: '${widget.initialQuery}'"
+          : "No results matching the selected filters");
+    }
+  } catch (e, s) {
+    debugPrint("Error fetching challans: $e\n$s");
+    showErrorToast(context, "Failed to load challans");
+    setState(() {
+      _challans = [];
+      _filteredData = [];
+      _totalPages = 1;
+      _isLoading = false;
+    });
   }
+}
+
 
   Color _getTypeColor(Map<String, dynamic> row) {
     final String typeStr = safeChallanType(row);
@@ -1362,6 +1497,7 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
                                 const SizedBox(height: 10),
                                 Text(
                                   "Create your first challan using the Add Challan button",
+                                  textAlign: TextAlign.center,
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     color: Colors.grey.shade600,

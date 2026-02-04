@@ -1287,6 +1287,57 @@ class ChallanApi {
     }
   }
 
+   Future<Map<String, dynamic>> searchChallansSimple({
+  required String query,
+  required int page,
+  required int size,
+}) async {
+  try {
+    final token = await TokenManager().getToken();
+    if (token == null || token.isEmpty) {
+      throw Exception("No authentication token available. Please log in again.");
+    }
+
+    final uri = Uri.parse('${baseUrl}/api/v1/challans/search').replace(queryParameters: {
+      'query': query,
+      'page': page.toString(),
+      'size': size.toString(),
+    });
+
+    debugPrint("→ Calling search: $uri");
+    debugPrint("→ Token: ${token.substring(0, 20)}..."); // partial for security
+
+    final response = await http
+        .get(uri, headers: _getHeaders())
+        .timeout(const Duration(seconds: 15));
+
+    debugPrint("← Status: ${response.statusCode}");
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401) {
+      // Handle unauthorized specifically
+      // You can trigger logout here later
+      throw Exception("Session expired (401 Unauthorized). Please log in again.");
+    } else {
+      String errorBody;
+      try {
+        final err = jsonDecode(response.body);
+        errorBody = err['message'] ?? response.body;
+      } catch (_) {
+        errorBody = response.body;
+      }
+      throw Exception(
+          "Search failed: ${response.statusCode} - $errorBody");
+    }
+  } catch (e, stack) {
+    debugPrint("searchChallansSimple failed: $e");
+    debugPrint(stack.toString());
+    rethrow; // let caller handle or show toast
+  }
+}
+
+
   // SHARE PDF
 
   Future<void> sharePdf(
