@@ -405,12 +405,12 @@ class _ViewChallanScreenState extends State<ViewChallanScreen> {
       }
     }
 
-    if (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty) {
-      _searchQuery = widget.initialQuery!.trim();
-      _selectedType = 'All';
-    } else {
-      _fetchChallans();
-    }
+    // if (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty) {
+    //   // _searchQuery = widget.initialQuery!.trim();
+    //   _selectedType = 'All';
+    // } else {
+    //   _fetchChallans();
+    // }
 
     _loadUserRole();
     _fetchChallans();

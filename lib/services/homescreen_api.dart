@@ -1,8 +1,10 @@
 // lib/services/homescreen_api.dart
 
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:snow_trading_cool/models/whatsappcredits.dart';
 import 'package:snow_trading_cool/utils/api_config.dart';
 import 'package:snow_trading_cool/utils/token_manager.dart';
 
@@ -21,8 +23,9 @@ class DashboardSummary {
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     var list = json['productSummaries'] as List;
-    List<ProductSummary> products =
-        list.map((i) => ProductSummary.fromJson(i)).toList();
+    List<ProductSummary> products = list
+        .map((i) => ProductSummary.fromJson(i))
+        .toList();
 
     return DashboardSummary(
       totalCustomers: json['totalCustomers'] ?? 0,
@@ -62,7 +65,9 @@ class HomeScreenApi {
     final token = TokenManager().getToken();
     if (token == null || token.isEmpty) return null;
 
-    final url = Uri.parse('${ApiConfig.baseUrl}/api/v1/challans/getDashboardData');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/api/v1/challans/getDashboardData',
+    );
 
     try {
       final response = await http.get(
@@ -77,11 +82,38 @@ class HomeScreenApi {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         return DashboardSummary.fromJson(json);
       } else {
-        debugPrint('Dashboard API error: ${response.statusCode} ${response.body}');
+        debugPrint(
+          'Dashboard API error: ${response.statusCode} ${response.body}',
+        );
         return null;
       }
     } catch (e) {
       debugPrint('Exception while fetching dashboard data: $e');
+      return null;
+    }
+  }
+
+  Future<WhatsAppCredits?> getWhatsAppCredits() async {
+    try {
+      final token = TokenManager().getToken();
+      if (token == null || token.isEmpty) return null;
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/v1/client-config/current/whatsapp-credits',
+        ),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        log("WhatsApp Credits: ${response.body}");
+        return WhatsAppCredits.fromResponse(response.body);
+      } else {
+        log('Failed to load WhatsApp credits: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching WhatsApp credits: $e');
       return null;
     }
   }

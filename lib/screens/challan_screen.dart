@@ -383,7 +383,7 @@ class _ChallanScreenState extends State<ChallanScreen> {
             .toList();
 
         final Map<String, dynamic> item = {
-          'id': e['id'],
+          'id': e['id'] ?? 0,
           'goodsItemId': goods.id,
           'name': goods.name,
           'type': (e['type'] as String).trim(),

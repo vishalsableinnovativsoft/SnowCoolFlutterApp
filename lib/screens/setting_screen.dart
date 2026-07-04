@@ -1,4 +1,3 @@
-// setting_screen.dart
 import 'dart:convert';
 import 'dart:io' show File if (dart.library.io) 'dart:io';
 import 'dart:typed_data';
@@ -42,6 +41,8 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
   final TextEditingController _challanFormatController = TextEditingController();
   final TextEditingController _challanSequenceController = TextEditingController(text: "1");
   final TextEditingController _termsController = TextEditingController();
+  bool _useWhatsAppShare = false;
+  bool _useEmailShare = false;
 
   ApplicationSettingsApi? _api;
   ApplicationSettingsDTO? _loadedSettings;
@@ -90,10 +91,10 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
           _challanFormatController.text = settings.challanNumberFormat ?? "";
           _challanSequenceController.text = (settings.challanSequence ?? 1).toString();
           _termsController.text = settings.termsAndConditions ?? "";
-
+          _useWhatsAppShare = settings.useWhatsAppShare ?? false;
+          _useEmailShare = settings.useEmailShare ?? false;
           _logoBase64 = settings.logoBase64;
           _signatureBase64 = settings.signatureBase64;
-
           _isEditableInvoicePrefix = true;
           _isEditableChallanFormat = true;
 
@@ -223,6 +224,8 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
         challanNumberFormat: _challanFormatController.text,
         challanSequence: sequenceNum,
         termsAndConditions: _termsController.text,
+        useWhatsAppShare: _useWhatsAppShare,
+        useEmailShare: _useEmailShare,
       );
 
       ApplicationSettingsDTO? result;
@@ -256,20 +259,9 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
     super.dispose();
   }
 
-  //  String _userRole = 'Employee';
-
-  // void _loadUserRole() {
-  //   final savedRole = TokenManager().getRole();
-  //   _userRole = (savedRole?.toUpperCase() == 'ADMIN') ? 'ADMIN' : 'Employee';
-  //   setState(() {});
-  // }
-
-
   @override
   Widget build(BuildContext context) {
     const blueColor = Color.fromRGBO(0, 140, 192, 1);
-        // bool isAdmin = _userRole == 'ADMIN';
-
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -400,6 +392,29 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
                     ],
                   ),
                   const SizedBox(height: 16),
+
+                  _buildSwitchTile(
+                        "WhatsApp Link",
+                        _useWhatsAppShare,
+                        (value) {
+                          setState(() {
+                            _useWhatsAppShare = value;
+                          });
+                        },
+                      ),
+
+                      _buildSwitchTile(
+                        "E-mail Link",
+                        _useEmailShare,
+                        (value) {
+                          setState(() {
+                            _useEmailShare = value;
+                          });
+                        },
+                      ),
+                    
+            
+                  const SizedBox(height: 16),
             
                   _buildLabel("Terms & Conditions"),
                   _buildTextField(true, _termsController, "e.g.,", maxLines: 3),
@@ -468,6 +483,46 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
       ),
     );
   }
+
+   Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: Color.fromRGBO(0, 140, 192, 1),
+          activeTrackColor: Colors.blue.shade100,
+          inactiveThumbColor: Colors.grey,
+          inactiveTrackColor: Colors.grey.shade300,
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildLabel(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),

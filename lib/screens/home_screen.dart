@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:countup/countup.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snow_trading_cool/models/whatsappcredits.dart';
 import 'package:snow_trading_cool/screens/profile_screen.dart';
 import 'package:snow_trading_cool/screens/view_customer_screen.dart';
 import 'package:snow_trading_cool/screens/view_user_screen.dart';
@@ -41,12 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
   late final isAdmin = _userRole == 'ADMIN';
   bool canManageSettings = TokenManager().canManageSetting;
 
+  WhatsAppCredits? _whatsappCredits;
+  bool _creditsLoading = true;
+
   @override
   void initState() {
     super.initState();
     _loadUserRole();
-    // _loadGoods();
     _loadDashboardData();
+    _loadWhatsAppCredits();
     if (isAdmin || canManageSettings) _loadAppSettingsLogo();
   }
 
@@ -79,6 +84,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadWhatsAppCredits() async {
+    if (!mounted) return;
+
+    setState(() => _creditsLoading = true);
+
+    try {
+      final credits = await HomeScreenApi().getWhatsAppCredits();
+
+      if (mounted) {
+        setState(() {
+          _whatsappCredits = credits;
+          _creditsLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error in _loadWhatsAppCredits: $e');
+      if (mounted) {
+        setState(() {
+          _whatsappCredits = null;
+          _creditsLoading = false;
+        });
+      }
+    }
+  }
+
   void _loadUserRole() {
     final savedRole = TokenManager().getRole();
     _userRole = (savedRole?.toUpperCase() == 'ADMIN') ? 'ADMIN' : 'Employee';
@@ -100,16 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToChallanSearch(String query) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ViewChallanScreen(
-        type: 'All',
-        initialQuery: query,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ViewChallanScreen(type: 'All', initialQuery: query),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +195,95 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text("WhatsApp Credits Balance"),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet,
+                          size: 40,
+                          color: AppColors.accentBlue,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _creditsLoading
+                              ? "Loading..."
+                              : "${_whatsappCredits?.remainingCredits ?? 0}",
+                          style: GoogleFonts.inter(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "Remaining Credits",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.25),
+                          Colors.white.withOpacity(0.10),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.account_balance_wallet,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _creditsLoading
+                              ? "—"
+                              : "${_whatsappCredits?.remainingCredits ?? 0}",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           if (canManageProfile || canManageSettings || isAdmin)
             Padding(
               padding: EdgeInsets.only(right: isMobile ? 8 : 12),
@@ -245,101 +361,121 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           SizedBox(height: verticalGap),
 
-if (isAdmin || canManageChallan)
-  Container(
-    decoration: BoxDecoration(
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.accentBlue.withOpacity(0.12),
-          blurRadius: 12,
-          offset: const Offset(0, 5),
-        ),
-      ],
-    ),
-    child: TextField(
-      controller: _searchController,
-      textInputAction: TextInputAction.search,
-      onSubmitted: (value) {
-        if (value.trim().isNotEmpty) {
-          _navigateToChallanSearch(value.trim());
-        }
-      },
-      decoration: InputDecoration(
-        hintText: "Search challans by any field...",
-        hintStyle: TextStyle(
-          color: Colors.grey.shade500,
-          fontSize: 15,
-        ),
-        prefixIcon: Icon(
-          Icons.search_rounded,
-          color: AppColors.accentBlue,
-          size: 22,
-        ),
-        suffixIcon: AnimatedBuilder(
-          animation: _searchController,
-          builder: (context, child) {
-            final showClear = _searchController.text.isNotEmpty;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (showClear)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      _searchController.clear();
-                      // Optional: trigger search reset if needed
-                    },
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Material(
-                    color: AppColors.accentBlue,
-                    borderRadius: BorderRadius.circular(50),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(50),
-                      onTap: () {
-                        final query = _searchController.text.trim();
-                        if (query.isNotEmpty) {
-                          _navigateToChallanSearch(query);
-                        }
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: BorderSide(color: AppColors.accentBlue, width: 2),
-        ),
-      ),
-    ),
-  ),
+                          if (isAdmin || canManageChallan)
+                            Container(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.accentBlue.withOpacity(
+                                      0.12,
+                                    ),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                textInputAction: TextInputAction.search,
+                                onSubmitted: (value) {
+                                  if (value.trim().isNotEmpty) {
+                                    _navigateToChallanSearch(value.trim());
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  hintText: "Search challans by any field...",
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 15,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: AppColors.accentBlue,
+                                    size: 22,
+                                  ),
+                                  suffixIcon: AnimatedBuilder(
+                                    animation: _searchController,
+                                    builder: (context, child) {
+                                      final showClear =
+                                          _searchController.text.isNotEmpty;
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (showClear)
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.clear_rounded,
+                                                color: Colors.grey,
+                                                size: 20,
+                                              ),
+                                              onPressed: () {
+                                                _searchController.clear();
+                                                // Optional: trigger search reset if needed
+                                              },
+                                            ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 8,
+                                            ),
+                                            child: Material(
+                                              color: AppColors.accentBlue,
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              child: InkWell(
+                                                borderRadius:
+                                                    BorderRadius.circular(50),
+                                                onTap: () {
+                                                  final query =
+                                                      _searchController.text
+                                                          .trim();
+                                                  if (query.isNotEmpty) {
+                                                    _navigateToChallanSearch(
+                                                      query,
+                                                    );
+                                                  }
+                                                },
+                                                child: const Padding(
+                                                  padding: EdgeInsets.all(8),
+                                                  child: Icon(
+                                                    Icons.arrow_forward_rounded,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                    borderSide: BorderSide(
+                                      color: AppColors.accentBlue,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           // SizedBox(height: verticalGap),
                           // if (isAdmin || canManageChallan)
                           //   Container(
@@ -424,7 +560,6 @@ if (isAdmin || canManageChallan)
                           //       // },
                           //     ),
                           //   ),
-                          
                           SizedBox(height: verticalGap),
                           Row(
                             children: [

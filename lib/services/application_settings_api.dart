@@ -25,6 +25,8 @@ class ApplicationSettingsDTO {
   final String? createdAt;
   final String? updatedAt;
   final String? termsAndConditions;
+  final bool? useWhatsAppShare;
+  final bool? useEmailShare;
 
   ApplicationSettingsDTO({
     this.id,
@@ -38,6 +40,8 @@ class ApplicationSettingsDTO {
     this.createdAt,
     this.updatedAt,
     this.termsAndConditions,
+    this.useWhatsAppShare,
+    this.useEmailShare,
   });
 
   /// -------------------------------------------------
@@ -59,6 +63,8 @@ class ApplicationSettingsDTO {
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
       termsAndConditions: json['termsAndConditions'] as String?,
+      useWhatsAppShare: json['_useWhatsAppShare'] as bool?,
+      useEmailShare: json['_useEmailShare'] as bool?,
     );
   }
 
@@ -91,6 +97,9 @@ class ApplicationSettingsDTO {
       map['sequenceLastResetDate'] = sequenceLastResetDate;
     if (termsAndConditions != null)
       map['termsAndConditions'] = termsAndConditions;
+    if (useWhatsAppShare != null) map['_useWhatsAppShare'] = useWhatsAppShare;
+    if (useEmailShare != null) map['_useEmailShare'] = useEmailShare;
+
     return map;
   }
 }
@@ -107,154 +116,156 @@ class ApplicationSettingsApi {
 
   /// GET /getSettings
 
-Future<ApplicationSettingsDTO?> getSettings(BuildContext context) async {
-  final uri = Uri.parse('$_baseUrl/api/v1/settings/getSettings');
-
-  try {
-    final response = await http
-        .get(
-          uri,
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-        )
-        .timeout(const Duration(seconds: 15));
-
-    // Success: Settings exist
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      return ApplicationSettingsDTO.fromJson(json);
-    }
-
-    // No settings created yet
-    if (response.statusCode == 204) {
-      return null;
-    }
-
-    // Any error status (400, 401, 403, 500, etc.)
-    String errorMessage = 'Failed to load settings';
+  Future<ApplicationSettingsDTO?> getSettings(BuildContext context) async {
+    final uri = Uri.parse('$_baseUrl/api/v1/settings/getSettings');
 
     try {
-      final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
 
-      // Common backend error response patterns
-      if (errorJson.containsKey('message')) {
-        errorMessage = errorJson['message'] as String;
-      } else if (errorJson.containsKey('error')) {
-        errorMessage = errorJson['error'] as String;
-      } else if (errorJson.containsKey('detail')) {
-        errorMessage = errorJson['detail'] as String;
-      } else if (errorJson.containsKey('title')) {
-        errorMessage = errorJson['title'] as String;
-      } else {
-        errorMessage = errorJson.values
-            .firstWhere((v) => v is String, orElse: () => response.body);
+      // Success: Settings exist
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return ApplicationSettingsDTO.fromJson(json);
       }
+
+      // No settings created yet
+      if (response.statusCode == 204) {
+        return null;
+      }
+
+      // Any error status (400, 401, 403, 500, etc.)
+      String errorMessage = 'Failed to load settings';
+
+      try {
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Common backend error response patterns
+        if (errorJson.containsKey('message')) {
+          errorMessage = errorJson['message'] as String;
+        } else if (errorJson.containsKey('error')) {
+          errorMessage = errorJson['error'] as String;
+        } else if (errorJson.containsKey('detail')) {
+          errorMessage = errorJson['detail'] as String;
+        } else if (errorJson.containsKey('title')) {
+          errorMessage = errorJson['title'] as String;
+        } else {
+          errorMessage = errorJson.values.firstWhere(
+            (v) => v is String,
+            orElse: () => response.body,
+          );
+        }
+      } catch (e) {
+        // If JSON parsing fails, use raw body or status code
+        errorMessage = response.body.isNotEmpty
+            ? response.body
+            : 'Error ${response.statusCode}';
+      }
+
+      // Show the actual backend message in toast
+      showErrorToast(
+        context,
+        errorMessage.trim().isEmpty ? 'Failed to load settings' : errorMessage,
+      );
+
+      return null;
+    } on http.ClientException catch (e) {
+      showErrorToast(context, "Network error: Please check your connection");
+      return null;
+    } on TimeoutException catch (_) {
+      showErrorToast(context, "Request timed out. Please try again.");
+      return null;
     } catch (e) {
-      // If JSON parsing fails, use raw body or status code
-      errorMessage = response.body.isNotEmpty
-          ? response.body
-          : 'Error ${response.statusCode}';
+      showErrorToast(context, "An unexpected error occurred");
+      return null;
     }
-
-    // Show the actual backend message in toast
-    showErrorToast(
-      context,
-      errorMessage.trim().isEmpty ? 'Failed to load settings' : errorMessage,
-    );
-
-    return null;
-
-  } on http.ClientException catch (e) {
-    showErrorToast(context, "Network error: Please check your connection");
-    return null;
-  } on TimeoutException catch (_) {
-    showErrorToast(context, "Request timed out. Please try again.");
-    return null;
-  } catch (e) {
-    showErrorToast(context, "An unexpected error occurred");
-    return null;
   }
-}
 
   /// POST /create  or  PUT /update
-  
 
   Future<ApplicationSettingsDTO> _send(
     BuildContext context,
-  String method,
-  ApplicationSettingsDTO dto,
-) async {
-  final url = method == 'POST'
-      ? '$_baseUrl/api/v1/settings/create'  // Fixed double slash
-      : '$_baseUrl/api/v1/settings/update';
+    String method,
+    ApplicationSettingsDTO dto,
+  ) async {
+    final url = method == 'POST'
+        ? '$_baseUrl/api/v1/settings/create' // Fixed double slash
+        : '$_baseUrl/api/v1/settings/update';
 
-  final body = jsonEncode(dto.toJson());
-
-  try {
-    final request = http.Request(method, Uri.parse(url))
-      ..headers['Authorization'] = 'Bearer $token'
-      ..headers['Content-Type'] = 'application/json'
-      ..body = body;
-
-    final streamedResponse = await request.send().timeout(const Duration(seconds: 15));
-    final response = await http.Response.fromStream(streamedResponse);
-
-    // Success
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      return ApplicationSettingsDTO.fromJson(json);
-    }
-
-    // Handle all error cases (400, 401, 422, 500, etc.)
-    String errorMessage = 'Operation failed';
+    final body = jsonEncode(dto.toJson());
 
     try {
-      final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+      final request = http.Request(method, Uri.parse(url))
+        ..headers['Authorization'] = 'Bearer $token'
+        ..headers['Content-Type'] = 'application/json'
+        ..body = body;
 
-      // Try common error message keys
-      errorMessage = errorJson['message'] ??
-          errorJson['error'] ??
-          errorJson['detail'] ??
-          errorJson['title'] ??
-          errorJson.values.firstWhere((v) => v is String, orElse: () => '') ??
-          'Unknown error occurred';
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 15),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // Success
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        return ApplicationSettingsDTO.fromJson(json);
+      }
+
+      // Handle all error cases (400, 401, 422, 500, etc.)
+      String errorMessage = 'Operation failed';
+
+      try {
+        final errorJson = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Try common error message keys
+        errorMessage =
+            errorJson['message'] ??
+            errorJson['error'] ??
+            errorJson['detail'] ??
+            errorJson['title'] ??
+            errorJson.values.firstWhere((v) => v is String, orElse: () => '') ??
+            'Unknown error occurred';
+      } catch (e) {
+        // If JSON is invalid, use raw body
+        errorMessage = response.body.isNotEmpty
+            ? response.body
+            : 'Server error ${response.statusCode}';
+      }
+
+      // Show backend error message in toast
+      showErrorToast(
+        context,
+        errorMessage.trim().isEmpty ? 'Failed to save settings' : errorMessage,
+      );
+
+      // Optionally rethrow if you want calling code to know it failed
+      throw Exception('$method failed: $errorMessage');
+    } on TimeoutException catch (_) {
+      showErrorToast(context, "Request timed out. Please try again.");
+      throw Exception("Request timeout");
+    } on http.ClientException catch (e) {
+      showErrorToast(context, "Network error: Check your connection");
+      throw Exception("Network error: $e");
     } catch (e) {
-      // If JSON is invalid, use raw body
-      errorMessage = response.body.isNotEmpty
-          ? response.body
-          : 'Server error ${response.statusCode}';
+      showErrorToast(context, "An unexpected error occurred");
+      rethrow;
     }
-
-    // Show backend error message in toast
-    showErrorToast(
-      context,
-      errorMessage.trim().isEmpty ? 'Failed to save settings' : errorMessage,
-    );
-
-    // Optionally rethrow if you want calling code to know it failed
-    throw Exception('$method failed: $errorMessage');
-
-  } on TimeoutException catch (_) {
-    showErrorToast(context, "Request timed out. Please try again.");
-    throw Exception("Request timeout");
-  } on http.ClientException catch (e) {
-    showErrorToast(context, "Network error: Check your connection");
-    throw Exception("Network error: $e");
-  } catch (e) {
-    showErrorToast(context, "An unexpected error occurred");
-    rethrow;
   }
+
+  Future<ApplicationSettingsDTO> createSettings(
+    ApplicationSettingsDTO dto,
+    BuildContext context,
+  ) => _send(context, 'POST', dto);
+
+  Future<ApplicationSettingsDTO> updateSettings(
+    ApplicationSettingsDTO dto,
+    BuildContext context,
+  ) => _send(context, 'PUT', dto);
 }
-
-  Future<ApplicationSettingsDTO> createSettings(ApplicationSettingsDTO dto, BuildContext context) =>
-      _send(context, 'POST', dto);
-
-  Future<ApplicationSettingsDTO> updateSettings(ApplicationSettingsDTO dto, BuildContext context) =>
-      _send(context, 'PUT', dto);
-}
-
-
-
-

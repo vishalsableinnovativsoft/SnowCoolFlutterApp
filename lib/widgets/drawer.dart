@@ -76,7 +76,8 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
         ? screenWidth * 0.75
         : (screenWidth * 0.47).clamp(260.0, screenWidth);
 
-    log("can Manage Customer:   ${canManageSetting.toString()}");
+    log("IsAdmin : $isAdmin");
+    log("can Manage setting:   ${canManageSetting.toString()}");
     log("can Manage Passbook:   ${canManagePassbook.toString()}");
     log("can Create Customer:   ${canCreateCustomer.toString()}");
     log("can Manage Customer:   ${canManageCustomer.toString()}");
@@ -120,7 +121,9 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                               color: Colors.grey[50],
                               borderRadius: BorderRadius.only(
                                 topRight: Radius.circular(isMobile ? 20 : 30),
-                                bottomRight: Radius.circular(isMobile ? 20 : 30),
+                                bottomRight: Radius.circular(
+                                  isMobile ? 20 : 30,
+                                ),
                               ),
                               boxShadow: [
                                 BoxShadow(
@@ -403,10 +406,13 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                               Icons.settings,
                                               color: Colors.black,
                                             ),
-                                            title: const Text('Settings',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                    color: Colors.black)),
+                                            title: const Text(
+                                              'Settings',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
 
                                             onTap: () {
                                               Navigator.pop(context);
@@ -434,20 +440,12 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                               color: Colors.grey,
                                             ),
                                           ),
-                                          //       Text(
-                                          //   "Version : 1.0.11",
-                                          //   style: GoogleFonts.inter(
-                                          //     fontSize: 12,
-                                          //     color: Colors.grey,
-                                          //   ),
-                                          // ),
                                         ],
                                       ),
                                     ),
                                     Image.asset(
                                       "assets/images/zerlak_logo.jpg",
                                       height: 30,
-                                      // width: 30,
                                       fit: BoxFit.cover,
                                     ),
                                   ],
