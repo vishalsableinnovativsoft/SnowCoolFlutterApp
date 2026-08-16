@@ -63,8 +63,8 @@ class ApplicationSettingsDTO {
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
       termsAndConditions: json['termsAndConditions'] as String?,
-      useWhatsAppShare: json['_useWhatsAppShare'] as bool?,
-      useEmailShare: json['_useEmailShare'] as bool?,
+      useWhatsAppShare: json['useWhatsAppShare'] as bool?,
+      useEmailShare: json['useEmailShare'] as bool?,
     );
   }
 
@@ -97,8 +97,8 @@ class ApplicationSettingsDTO {
       map['sequenceLastResetDate'] = sequenceLastResetDate;
     if (termsAndConditions != null)
       map['termsAndConditions'] = termsAndConditions;
-    if (useWhatsAppShare != null) map['_useWhatsAppShare'] = useWhatsAppShare;
-    if (useEmailShare != null) map['_useEmailShare'] = useEmailShare;
+    if (useWhatsAppShare != null) map['useWhatsAppShare'] = useWhatsAppShare;
+    if (useEmailShare != null) map['useEmailShare'] = useEmailShare;
 
     return map;
   }
@@ -176,7 +176,7 @@ class ApplicationSettingsApi {
       );
 
       return null;
-    } on http.ClientException catch (e) {
+    } on http.ClientException {
       showErrorToast(context, "Network error: Please check your connection");
       return null;
     } on TimeoutException catch (_) {

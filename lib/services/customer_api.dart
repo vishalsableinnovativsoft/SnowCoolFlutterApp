@@ -24,6 +24,8 @@ class CustomerDTO {
   final double? deposite;
   final double? runningBalance;
   final List<Map<String, dynamic>>? items;
+  final bool useWhatsAppShare;
+  final bool useEmailShare;
 
   CustomerDTO({
     required this.id,
@@ -35,6 +37,8 @@ class CustomerDTO {
     this.deposite,
     this.runningBalance,
     this.items,
+    required this.useEmailShare,
+    required this.useWhatsAppShare,
   });
 
   factory CustomerDTO.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,8 @@ class CustomerDTO {
       reminder: json['reminder']?.toString().trim(),
       deposite: _parseDouble(json['deposite']),
       runningBalance: _parseDouble(json['runningBalance']),
+      useEmailShare: json['useEmailShare'] ?? false,
+      useWhatsAppShare: json['useWhatsAppShare'] ?? false,
       items: json['items'] is List
           ? List<Map<String, dynamic>>.from(json['items'])
           : null,
@@ -74,11 +80,7 @@ class CustomerResponse {
   final String? message;
   final CustomerDTO? data;
 
-  CustomerResponse({
-    required this.success,
-    this.message,
-    this.data,
-  });
+  CustomerResponse({required this.success, this.message, this.data});
 
   factory CustomerResponse.fromJson(Map<String, dynamic> json) {
     // Check if response has wrapper fields
@@ -390,6 +392,8 @@ class CustomerApi {
     required String address,
     String? reminder,
     double? deposite,
+    required bool useEmailShare,
+    required bool useWhatsAppShare,
     List<Map<String, dynamic>>? items,
   }) async {
     final url = Uri.parse('${_normalize()}/api/v1/customers/save');
@@ -401,6 +405,8 @@ class CustomerApi {
       'address': address.trim(),
       'reminder': reminder,
       'deposite': deposite ?? 0.0,
+      'useEmailShare': useEmailShare,
+      'useWhatsAppShare': useWhatsAppShare,
       'items': items,
     });
 
@@ -475,6 +481,8 @@ class CustomerApi {
     required String address,
     required String email,
     required String reminder,
+    required bool useWhatsAppShare,
+    required bool useEmailShare,
     required int id,
     double? deposite,
     List<Map<String, dynamic>>? items,
@@ -487,6 +495,8 @@ class CustomerApi {
       'address': address.trim(),
       'deposite': deposite,
       'reminder': reminder,
+      'useEmailShare': useEmailShare,
+      'useWhatsAppShare': useWhatsAppShare,
       'items': items,
     });
     final headers = _getHeaders();
@@ -605,7 +615,9 @@ class CustomerApi {
     int customerId,
     BuildContext context,
   ) async {
-    final url = Uri.parse('${_normalize()}/api/v1/challans/getPreviousBalance/$customerId');
+    final url = Uri.parse(
+      '${_normalize()}/api/v1/challans/getPreviousBalance/$customerId',
+    );
     final headers = _getHeaders();
 
     try {
@@ -619,7 +631,8 @@ class CustomerApi {
         return balance ?? 0.0;
       } else {
         debugPrint(
-            "Previous balance API failed: ${response.statusCode} ${response.body}");
+          "Previous balance API failed: ${response.statusCode} ${response.body}",
+        );
         return 0.0;
       }
     } on TimeoutException {

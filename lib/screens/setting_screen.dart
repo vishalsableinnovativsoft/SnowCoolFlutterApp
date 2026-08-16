@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:snow_trading_cool/screens/home_screen.dart';
 import 'package:snow_trading_cool/utils/constants.dart';
 import 'package:snow_trading_cool/widgets/custom_loader.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
 import 'package:snow_trading_cool/widgets/drawer.dart';
+import 'package:snow_trading_cool/widgets/share_toggle_button.dart';
 import '../services/application_settings_api.dart';
 import '../utils/token_manager.dart';
 
@@ -41,8 +43,8 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
   final TextEditingController _challanFormatController = TextEditingController();
   final TextEditingController _challanSequenceController = TextEditingController(text: "1");
   final TextEditingController _termsController = TextEditingController();
-  bool _useWhatsAppShare = false;
-  bool _useEmailShare = false;
+  bool useWhatsAppShare = false;
+  bool useEmailShare = false;
 
   ApplicationSettingsApi? _api;
   ApplicationSettingsDTO? _loadedSettings;
@@ -86,13 +88,12 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
         setState(() {
           _isExisting = true;
           _loadedSettings = settings;
-
           _invoicePrefixController.text = settings.invoicePrefix ?? "";
           _challanFormatController.text = settings.challanNumberFormat ?? "";
           _challanSequenceController.text = (settings.challanSequence ?? 1).toString();
           _termsController.text = settings.termsAndConditions ?? "";
-          _useWhatsAppShare = settings.useWhatsAppShare ?? false;
-          _useEmailShare = settings.useEmailShare ?? false;
+          useWhatsAppShare = settings.useWhatsAppShare ?? false;
+          useEmailShare = settings.useEmailShare ?? false;
           _logoBase64 = settings.logoBase64;
           _signatureBase64 = settings.signatureBase64;
           _isEditableInvoicePrefix = true;
@@ -224,8 +225,8 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
         challanNumberFormat: _challanFormatController.text,
         challanSequence: sequenceNum,
         termsAndConditions: _termsController.text,
-        useWhatsAppShare: _useWhatsAppShare,
-        useEmailShare: _useEmailShare,
+        useWhatsAppShare: useWhatsAppShare,
+        useEmailShare: useEmailShare,
       );
 
       ApplicationSettingsDTO? result;
@@ -393,22 +394,24 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
                   ),
                   const SizedBox(height: 16),
 
-                  _buildSwitchTile(
+                  buildSwitchTile(
+                    FontAwesomeIcons.whatsapp,
                         "WhatsApp Link",
-                        _useWhatsAppShare,
+                        useWhatsAppShare,
                         (value) {
                           setState(() {
-                            _useWhatsAppShare = value;
+                            useWhatsAppShare = value;
                           });
                         },
                       ),
 
-                      _buildSwitchTile(
+                      buildSwitchTile(
+                        FontAwesomeIcons.envelope,
                         "E-mail Link",
-                        _useEmailShare,
+                        useEmailShare,
                         (value) {
                           setState(() {
-                            _useEmailShare = value;
+                            useEmailShare = value;
                           });
                         },
                       ),
@@ -483,46 +486,6 @@ class _ProfileApplicationSettingScreenState extends State<ProfileApplicationSett
       ),
     );
   }
-
-   Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: Color.fromRGBO(0, 140, 192, 1),
-          activeTrackColor: Colors.blue.shade100,
-          inactiveThumbColor: Colors.grey,
-          inactiveTrackColor: Colors.grey.shade300,
-        ),
-      ],
-    ),
-  );
-}
 
   Widget _buildLabel(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),

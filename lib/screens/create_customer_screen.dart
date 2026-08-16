@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snow_trading_cool/services/goods_api.dart';
 import 'package:snow_trading_cool/utils/constants.dart';
 import 'package:snow_trading_cool/utils/mobileinputformater.dart';
 import 'package:snow_trading_cool/widgets/custom_loader.dart';
 import 'package:snow_trading_cool/widgets/custom_toast.dart';
+import 'package:snow_trading_cool/widgets/share_toggle_button.dart';
 import '../services/customer_api.dart';
 
 class CreateCustomerScreen extends StatefulWidget {
@@ -55,6 +57,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
   // String? _emailError;
   final List<String?> _emailErrors = [];
   String? _addressError;
+  bool useWhatsAppShare = false;
+  bool useEmailShare = false;
 
   @override
   void dispose() {
@@ -244,7 +248,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
         depositOpeningBalanceController.text = (customer.deposite ?? 0.0)
             .toStringAsFixed(2);
         setReminder = customer.reminder ?? 'None';
-
+        useWhatsAppShare = customer.useWhatsAppShare;
+        useEmailShare = customer.useEmailShare;
         _emailControllers.clear();
         _emailErrors.clear();
 
@@ -512,6 +517,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
           address: _addressController.text.trim(),
           reminder: reminderType,
           deposite: depositAmount,
+          useEmailShare: useEmailShare,
+          useWhatsAppShare: useWhatsAppShare,
           items: selectedGoods.isEmpty ? null : selectedGoods,
         );
 
@@ -533,6 +540,8 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
           address: _addressController.text.trim(),
           reminder: reminderType,
           deposite: depositAmount,
+          useEmailShare: useEmailShare,
+          useWhatsAppShare: useWhatsAppShare,
           items: selectedGoods.isEmpty ? null : selectedGoods,
         );
       }
@@ -1052,6 +1061,29 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                       ),
                     ),
 
+                    ////////// Data share
+                    buildSwitchTile(
+                      FontAwesomeIcons.whatsapp,
+                      "WhatsApp Share",
+                      useWhatsAppShare!,
+                      (value) {
+                        setState(() {
+                          useWhatsAppShare = value;
+                        });
+                      },
+                    ),
+
+                    buildSwitchTile(
+                      FontAwesomeIcons.envelope,
+                      "E-mail Share",
+                      useEmailShare!,
+                      (value) {
+                        setState(() {
+                          useEmailShare = value;
+                        });
+                      },
+                    ),
+
                     // Goods Selection Table
                     _buildGoodsSelectionTable(),
                     const SizedBox(height: 12),
@@ -1097,6 +1129,7 @@ class _CreateCustomerScreenState extends State<CreateCustomerScreen> {
                               ),
                               padding: EdgeInsets.symmetric(
                                 vertical: isMobile ? 14 : 16,
+                                horizontal: 2,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(18),

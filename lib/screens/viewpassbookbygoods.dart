@@ -1731,9 +1731,7 @@ class _GoodsPassbookState extends State<GoodsPassbook> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                customerId != null
-                                    ? "No passbook entries found for this customer"
-                                    : "No passbook entries found",
+                                "No passbook entries found for this customer",
                                 style: const TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey,

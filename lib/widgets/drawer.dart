@@ -198,6 +198,10 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                 children: [
                                   if (canManageChallan || isAdmin)
                                     ListTile(
+                                      leading: const Icon(
+                                        Icons.receipt_long_rounded,
+                                        color: AppColors.accentBlue,
+                                      ),
                                       title: const Text('Challan'),
                                       trailing: Icon(
                                         _showChallanSubMenu
@@ -217,7 +221,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                   if (_showChallanSubMenu) ...[
                                     ListTile(
                                       leading: const SizedBox(
-                                        width: 1,
+                                        width: 3,
                                       ), // Indent alignment
                                       title: const Text('Challan Entry'),
                                       trailing: Icon(
@@ -258,7 +262,7 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                     ],
 
                                     // View Challan (separate item)
-                                    _subMenu('    View Challan', () {
+                                    _subMenu('   View Challan', () {
                                       Navigator.pop(context);
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -277,6 +281,10 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                       canCreateCustomer ||
                                       isAdmin)
                                     ListTile(
+                                      leading: const Icon(
+                                        Icons.people_alt_rounded,
+                                        color: AppColors.accentBlue,
+                                      ),
                                       title: const Text('Customers'),
                                       trailing: Icon(
                                         _showCustomerSubMenu
@@ -311,10 +319,16 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                         );
                                       }),
                                   ],
+
+                                  //////////////////////////////////////
                                   const Divider(height: 1),
                                   if ((!isAdmin && canManagePassbook) ||
                                       isAdmin)
                                     ListTile(
+                                      leading: const Icon(
+                                        Icons.menu_book_rounded,
+                                        color: AppColors.accentBlue,
+                                      ),
                                       title: const Text('View Passbook'),
                                       trailing: const Icon(
                                         Icons.arrow_forward_ios,
@@ -329,10 +343,16 @@ class _ShowSideMenuState extends State<ShowSideMenu> {
                                         );
                                       },
                                     ),
+
+                                  //////////////////////////////////
                                   const Divider(height: 1),
                                   if ((!isAdmin && canManageGoodsItem) ||
                                       isAdmin)
                                     ListTile(
+                                      leading: const Icon(
+                                        Icons.inventory_2_rounded,
+                                        color: AppColors.accentBlue,
+                                      ),
                                       tileColor: Colors.white,
                                       // enabled: isAdmin,
                                       title: Text('Items/Goods'),
